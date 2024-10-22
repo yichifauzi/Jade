@@ -144,6 +144,9 @@ public interface IWailaConfig {
 	interface IConfigOverlay {
 
 		static int applyAlpha(int color, float alpha) {
+			if (alpha == 0) {
+				return 0;
+			}
 			int prevAlphaChannel = (color >> 24) & 0xFF;
 			if (prevAlphaChannel > 0) {
 				alpha *= prevAlphaChannel / 256f;
