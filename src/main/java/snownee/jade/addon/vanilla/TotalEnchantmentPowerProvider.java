@@ -12,7 +12,7 @@ import snownee.jade.api.JadeIds;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.overlay.DisplayHelper;
-import snownee.jade.util.CommonProxy;
+import snownee.jade.util.ClientProxy;
 
 public enum TotalEnchantmentPowerProvider implements IBlockComponentProvider {
 
@@ -36,7 +36,7 @@ public enum TotalEnchantmentPowerProvider implements IBlockComponentProvider {
 	}
 
 	public static float getPower(Level world, BlockPos pos) {
-		return CommonProxy.getEnchantPowerBonus(world.getBlockState(pos), world, pos);
+		return ClientProxy.getEnchantPowerBonus(world.getBlockState(pos), world, pos);
 	}
 
 	@Override

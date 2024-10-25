@@ -295,13 +295,6 @@ public final class CommonProxy {
 		return !FMLEnvironment.production;
 	}
 
-	public static float getEnchantPowerBonus(BlockState state, Level world, BlockPos pos) {
-		if (WailaClientRegistration.instance().customEnchantPowers.containsKey(state.getBlock())) {
-			return WailaClientRegistration.instance().customEnchantPowers.get(state.getBlock()).getEnchantPowerBonus(state, world, pos);
-		}
-		return state.getEnchantPowerBonus(world, pos);
-	}
-
 	public static ResourceLocation getId(Block block) {
 		return BuiltInRegistries.BLOCK.getKey(block);
 	}

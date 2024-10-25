@@ -109,6 +109,9 @@ public class WailaConfig implements IWailaConfig {
 	}
 
 	public void fixData() {
+		if (!CommonProxy.isPhysicallyClient()) {
+			return;
+		}
 		for (ConfigEntry<?> entry : WailaClientRegistration.instance().configEntries.values()) {
 			plugin.ensureEntry(entry);
 		}

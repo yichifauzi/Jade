@@ -27,6 +27,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -38,6 +39,8 @@ import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
@@ -317,6 +320,13 @@ public final class ClientProxy {
 			WailaExceptionHandler.handleErr(e, provider, tooltip::add);
 			return null;
 		}
+	}
+
+	public static float getEnchantPowerBonus(BlockState state, Level world, BlockPos pos) {
+		if (WailaClientRegistration.instance().customEnchantPowers.containsKey(state.getBlock())) {
+			return WailaClientRegistration.instance().customEnchantPowers.get(state.getBlock()).getEnchantPowerBonus(state, world, pos);
+		}
+		return state.is(Blocks.BOOKSHELF) ? 1 : 0;
 	}
 
 	public static void init(IEventBus modBus) {

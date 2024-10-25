@@ -1,6 +1,7 @@
 package snownee.jade;
 
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 
@@ -9,6 +10,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 
+import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.impl.WailaClientRegistration;
@@ -87,7 +89,13 @@ public class Jade {
 			}
 		}
 
-		WailaCommonRegistration.instance().priorities.sort(WailaClientRegistration.instance().getConfigKeys());
+		Set<ResourceLocation> extraKeys;
+		if (CommonProxy.isPhysicallyClient()) {
+			extraKeys = WailaClientRegistration.instance().getConfigKeys();
+		} else {
+			extraKeys = Set.of();
+		}
+		WailaCommonRegistration.instance().priorities.sort(extraKeys);
 		WailaCommonRegistration.instance().loadComplete();
 		if (CommonProxy.isPhysicallyClient()) {
 			WailaClientRegistration.instance().loadComplete();
