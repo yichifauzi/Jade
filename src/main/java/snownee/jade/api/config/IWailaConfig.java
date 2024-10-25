@@ -227,5 +227,9 @@ public interface IWailaConfig {
 		void setFlipMainHand(boolean overlaySquare);
 
 		float tryFlip(float f);
+
+		void setTextBackgroundOpacity(float opacity);
+
+		float getTextBackgroundOpacity();
 	}
 }

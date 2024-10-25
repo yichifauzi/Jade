@@ -677,18 +677,26 @@ public class WailaConfig implements IWailaConfig {
 						.fieldOf("ttsMode").orElse(TTSMode.TOGGLE)
 						.forGetter(Accessibility::getTTSMode),
 				Codec.BOOL.fieldOf("enableAccessibilityPlugin").orElse(false).forGetter(Accessibility::getEnableAccessibilityPlugin),
+				Codec.floatRange(0, 1).fieldOf("textBackgroundOpacity").orElse(0F).forGetter(Accessibility::getTextBackgroundOpacity),
 				Codec.BOOL.fieldOf("flipMainHand").orElse(false).forGetter(Accessibility::getFlipMainHand)
 		).apply(i, Accessibility::new));
 
 		private boolean enableTextToSpeech;
 		private TTSMode ttsMode;
 		private boolean enableAccessibilityPlugin;
+		private float textBackgroundOpacity;
 		private boolean flipMainHand;
 
-		public Accessibility(boolean enableTextToSpeech, TTSMode ttsMode, boolean enableAccessibilityPlugin, boolean flipMainHand) {
+		public Accessibility(
+				boolean enableTextToSpeech,
+				TTSMode ttsMode,
+				boolean enableAccessibilityPlugin,
+				float textBackgroundOpacity,
+				boolean flipMainHand) {
 			this.enableTextToSpeech = enableTextToSpeech;
 			this.ttsMode = ttsMode;
 			this.enableAccessibilityPlugin = enableAccessibilityPlugin;
+			this.textBackgroundOpacity = textBackgroundOpacity;
 			this.flipMainHand = flipMainHand;
 		}
 
@@ -738,6 +746,16 @@ public class WailaConfig implements IWailaConfig {
 				f = 1 - f;
 			}
 			return f;
+		}
+
+		@Override
+		public void setTextBackgroundOpacity(float opacity) {
+			textBackgroundOpacity = opacity;
+		}
+
+		@Override
+		public float getTextBackgroundOpacity() {
+			return textBackgroundOpacity;
 		}
 	}
 

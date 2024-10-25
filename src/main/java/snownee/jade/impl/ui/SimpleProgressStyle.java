@@ -8,7 +8,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec2;
+import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.config.IWailaConfig.Overlay;
 import snownee.jade.api.ui.Color;
 import snownee.jade.api.ui.ProgressStyle;
@@ -152,7 +154,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 					guiGraphics.pose().last().pose(),
 					guiGraphics.bufferSource,
 					Font.DisplayMode.NORMAL,
-					0x50000000,
+					ARGB.as8BitChannel(IWailaConfig.get().accessibility().getTextBackgroundOpacity()) << 24,
 					0xF000F0);
 			DisplayHelper.setBetterTextShadow(false);
 		}
