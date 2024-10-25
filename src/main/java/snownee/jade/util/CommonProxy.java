@@ -79,7 +79,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -365,13 +364,6 @@ public final class CommonProxy implements ModInitializer {
 
 	public static boolean isDevEnv() {
 		return FabricLoader.getInstance().isDevelopmentEnvironment();
-	}
-
-	public static float getEnchantPowerBonus(BlockState state, Level world, BlockPos pos) {
-		if (WailaClientRegistration.instance().customEnchantPowers.containsKey(state.getBlock())) {
-			return WailaClientRegistration.instance().customEnchantPowers.get(state.getBlock()).getEnchantPowerBonus(state, world, pos);
-		}
-		return state.is(Blocks.BOOKSHELF) ? 1 : 0;
 	}
 
 	public static ResourceLocation getId(Block block) {
