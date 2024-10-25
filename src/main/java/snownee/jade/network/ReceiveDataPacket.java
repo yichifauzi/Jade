@@ -38,8 +38,8 @@ public record ReceiveDataPacket(CompoundTag tag) implements CustomPacketPayload 
 	public static void send(CompoundTag tag, ServerPayloadContext context) {
 		int size = tag.sizeInBytes();
 		if (size > MAX_SIZE) {
-			if (spamCount++ < 3) {
-				Jade.LOGGER.error("Data size is too large: {}, max: {}, data: {}", size, MAX_SIZE, tag);
+			if (spamCount++ < 1) {
+				Jade.LOGGER.debug("Data size is too large: {}, max: {}, data: {}", size, MAX_SIZE, tag);
 			}
 			int c = 0;
 			do {

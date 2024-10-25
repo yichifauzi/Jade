@@ -208,6 +208,10 @@ public interface IWailaConfig {
 		float getDisappearingDelay();
 
 		void setDisappearingDelay(float delay);
+
+		float getTextBackgroundOpacity();
+
+		void setTextBackgroundOpacity(float opacity);
 	}
 
 	@NonExtendable

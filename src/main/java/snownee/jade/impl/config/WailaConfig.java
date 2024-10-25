@@ -467,7 +467,8 @@ public class WailaConfig implements IWailaConfig {
 						.fieldOf("iconMode").orElse(IconMode.TOP)
 						.forGetter(ConfigOverlay::getIconMode),
 				Codec.BOOL.fieldOf("animation").orElse(true).forGetter(ConfigOverlay::getAnimation),
-				Codec.floatRange(0, Float.MAX_VALUE).fieldOf("disappearingDelay").orElse(0F).forGetter(ConfigOverlay::getDisappearingDelay)
+				Codec.floatRange(0, Float.MAX_VALUE).fieldOf("disappearingDelay").orElse(0F).forGetter(ConfigOverlay::getDisappearingDelay),
+				Codec.floatRange(0, 1).fieldOf("textBackgroundOpacity").orElse(0F).forGetter(ConfigOverlay::getTextBackgroundOpacity)
 		).apply(i, ConfigOverlay::new));
 
 		public ResourceLocation activeTheme;
@@ -484,6 +485,7 @@ public class WailaConfig implements IWailaConfig {
 		private IconMode iconMode;
 		private boolean animation;
 		private float disappearingDelay;
+		private float textBackgroundOpacity;
 
 		public ConfigOverlay(
 				ResourceLocation activeTheme,
@@ -498,7 +500,8 @@ public class WailaConfig implements IWailaConfig {
 				float alpha,
 				IconMode iconMode,
 				boolean animation,
-				float disappearingDelay) {
+				float disappearingDelay,
+				float textBackgroundOpacity) {
 			this.activeTheme = activeTheme;
 			this.overlayPosX = overlayPosX;
 			this.overlayPosY = overlayPosY;
@@ -512,6 +515,7 @@ public class WailaConfig implements IWailaConfig {
 			this.iconMode = iconMode;
 			this.animation = animation;
 			this.disappearingDelay = disappearingDelay;
+			this.textBackgroundOpacity = textBackgroundOpacity;
 		}
 
 		@Override
@@ -654,6 +658,16 @@ public class WailaConfig implements IWailaConfig {
 		@Override
 		public void setDisappearingDelay(float delay) {
 			disappearingDelay = delay;
+		}
+
+		@Override
+		public float getTextBackgroundOpacity() {
+			return textBackgroundOpacity;
+		}
+
+		@Override
+		public void setTextBackgroundOpacity(float opacity) {
+			textBackgroundOpacity = opacity;
 		}
 
 	}
