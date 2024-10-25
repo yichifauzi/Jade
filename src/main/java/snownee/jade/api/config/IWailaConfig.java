@@ -145,7 +145,7 @@ public interface IWailaConfig {
 
 		static int applyAlpha(int color, float alpha) {
 			if (alpha == 0) {
-				return -1;
+				return 0;
 			}
 			int prevAlphaChannel = (color >> 24) & 0xFF;
 			if (prevAlphaChannel > 0) {
@@ -208,10 +208,6 @@ public interface IWailaConfig {
 		float getDisappearingDelay();
 
 		void setDisappearingDelay(float delay);
-
-		float getTextBackgroundOpacity();
-
-		void setTextBackgroundOpacity(float opacity);
 	}
 
 	@NonExtendable

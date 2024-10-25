@@ -9,11 +9,10 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec2;
-import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.config.IWailaConfig.IConfigOverlay;
 import snownee.jade.api.ui.Color;
-import snownee.jade.api.ui.ProgressStyle;
 import snownee.jade.api.ui.ScreenDirection;
+import snownee.jade.api.ui.ProgressStyle;
 import snownee.jade.overlay.DisplayHelper;
 import snownee.jade.overlay.OverlayRenderer;
 
@@ -69,9 +68,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 
 	@Override
 	public ProgressStyle direction(ScreenDirection direction) {
-		Preconditions.checkArgument(
-				direction == ScreenDirection.UP || direction == ScreenDirection.RIGHT,
-				"Only UP and RIGHT are supported");
+		Preconditions.checkArgument(direction == ScreenDirection.UP || direction == ScreenDirection.RIGHT, "Only UP and RIGHT are supported");
 		super.direction(direction);
 		vertical = direction.isVertical();
 		return this;
@@ -144,17 +141,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 			}
 			int color = IConfigOverlay.applyAlpha(textColor, OverlayRenderer.alpha);
 			DisplayHelper.setBetterTextShadow(true);
-			Minecraft.getInstance().font.drawInBatch(
-					text,
-					(int) x + 1,
-					(int) y - 1,
-					color,
-					true,
-					guiGraphics.pose().last().pose(),
-					guiGraphics.bufferSource(),
-					Font.DisplayMode.NORMAL,
-					IConfigOverlay.applyAlpha(0, IWailaConfig.get().getOverlay().getTextBackgroundOpacity()),
-					0xF000F0);
+			guiGraphics.drawString(font, text, (int) x + 1, (int) y, color);
 			DisplayHelper.setBetterTextShadow(false);
 		}
 	}
