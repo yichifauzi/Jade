@@ -21,6 +21,7 @@ public interface JadeIds {
 	ResourceLocation DEBUG_SPECIAL_REGISTRY_NAME = JADE("registry_name.special");
 	ResourceLocation DEBUG_BLOCK_PROPERTIES = JADE("block_properties");
 	ResourceLocation DEBUG_BLOCK_STATES = JADE("block_states");
+	ResourceLocation DEBUG_ENTITY_ATTRIBUTES = JADE("entity_attributes");
 	ResourceLocation UNIVERSAL_ITEM_STORAGE = MC("item_storage");
 	ResourceLocation UNIVERSAL_ITEM_STORAGE_DEFAULT = MC("item_storage.default");
 	ResourceLocation UNIVERSAL_ITEM_STORAGE_DETAILED_AMOUNT = MC("item_storage.detailed_amount");
