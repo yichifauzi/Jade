@@ -150,6 +150,7 @@ public class WailaConfigScreen extends PreviewOptionsScreen {
 		options.title("accessibility");
 		options.choices("accessibility_plugin", accessibility::getEnableAccessibilityPlugin, accessibility::setEnableAccessibilityPlugin);
 		options.choices("tts_mode", accessibility::getTTSMode, accessibility::setTTSMode);
+		options.slider("text_background_opacity", accessibility::getTextBackgroundOpacity, accessibility::setTextBackgroundOpacity);
 		options.choices("flip_main_hand", accessibility::getFlipMainHand, accessibility::setFlipMainHand);
 
 		options.title("danger_zone").withStyle(ChatFormatting.RED);
