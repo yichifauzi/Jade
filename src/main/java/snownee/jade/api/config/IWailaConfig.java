@@ -138,7 +138,7 @@ public interface IWailaConfig {
 
 		static int applyAlpha(int color, float alpha) {
 			if (alpha == 0) {
-				return -1;
+				return 0;
 			}
 			int prevAlphaChannel = ARGB.alpha(color);
 			if (prevAlphaChannel > 0) {
