@@ -122,6 +122,12 @@ public final class ClientProxy {
 		});
 		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modEventBus.addListener(EventPriority.NORMAL, false, RegisterClientReloadListenersEvent.class, event -> {
+			for (int i = 320; i < 330; i++) {
+				InputConstants.Key key = InputConstants.Type.KEYSYM.getOrCreate(i);
+				//noinspection deprecation
+				key.displayName = new LazyLoadedValue<>(() -> Component.translatable(key.getName()));
+			}
+			JadeClient.init();
 			event.registerReloadListener(ThemeHelper.INSTANCE);
 			listeners.forEach(event::registerReloadListener);
 			listeners.clear();
@@ -133,13 +139,6 @@ public final class ClientProxy {
 		ModLoadingContext.get().registerExtensionPoint(
 				ConfigScreenFactory.class,
 				() -> new ConfigScreenFactory((minecraft, screen) -> new HomeConfigScreen(screen)));
-
-		for (int i = 320; i < 330; i++) {
-			InputConstants.Key key = InputConstants.Type.KEYSYM.getOrCreate(i);
-			//noinspection deprecation
-			key.displayName = new LazyLoadedValue<>(() -> Component.translatable(key.getName()));
-		}
-		JadeClient.init();
 	}
 
 	private static void onEntityJoin(EntityJoinLevelEvent event) {
