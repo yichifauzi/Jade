@@ -10,7 +10,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Stopwatch;
@@ -28,9 +30,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.EntityPickInteractionAware;
 import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalEntityTypeTags;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
@@ -57,9 +57,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainerHolder;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -111,10 +109,11 @@ import snownee.jade.impl.WailaCommonRegistration;
 import snownee.jade.impl.config.ServerPluginConfig;
 import snownee.jade.impl.lookup.WrappedHierarchyLookup;
 import snownee.jade.mixin.AbstractHorseAccess;
+import snownee.jade.network.ClientHandshakePacket;
 import snownee.jade.network.ReceiveDataPacket;
 import snownee.jade.network.RequestBlockPacket;
 import snownee.jade.network.RequestEntityPacket;
-import snownee.jade.network.ServerPingPacket;
+import snownee.jade.network.ServerHandshakePacket;
 import snownee.jade.network.ShowOverlayPacket;
 
 public final class CommonProxy implements ModInitializer {
@@ -413,16 +412,19 @@ public final class CommonProxy implements ModInitializer {
 		return stack == null ? ItemStack.EMPTY : stack;
 	}
 
-	private static void playerJoin(ServerGamePacketListenerImpl handler, PacketSender sender, MinecraftServer server) {
-		ServerPlayer player = handler.player;
-		Map<ResourceLocation, Object> configs = ServerPluginConfig.instance().values();
-		List<Block> shearableBlocks = HarvestToolProvider.INSTANCE.getShearableBlocks();
-		if (!configs.isEmpty()) {
-			Jade.LOGGER.debug("Syncing config to {} ({})", player.getGameProfile().getName(), player.getGameProfile().getId());
+	public static void playerHandshake(String clientVersion, @NotNull ServerPlayer player) {
+		if (Jade.PROTOCOL_VERSION.equals(clientVersion)) {
+			((IJadeServerPlayer) player).jade$setClientVersion(clientVersion);
+			((IJadeServerPlayer) player).jade$setConnected(true);
+			Map<ResourceLocation, Object> configs = ServerPluginConfig.instance().values();
+			List<Block> shearableBlocks = HarvestToolProvider.INSTANCE.getShearableBlocks();
+			if (!configs.isEmpty()) {
+				Jade.LOGGER.debug("Syncing config to {} ({})", player.getGameProfile().getName(), player.getGameProfile().getId());
+			}
+			List<ResourceLocation> blockProviderIds = WailaCommonRegistration.instance().blockDataProviders.mappedIds();
+			List<ResourceLocation> entityProviderIds = WailaCommonRegistration.instance().entityDataProviders.mappedIds();
+			ServerPlayNetworking.send(player, new ServerHandshakePacket(configs, shearableBlocks, blockProviderIds, entityProviderIds));
 		}
-		List<ResourceLocation> blockProviderIds = WailaCommonRegistration.instance().blockDataProviders.mappedIds();
-		List<ResourceLocation> entityProviderIds = WailaCommonRegistration.instance().entityDataProviders.mappedIds();
-		ServerPlayNetworking.send(player, new ServerPingPacket(configs, shearableBlocks, blockProviderIds, entityProviderIds));
 	}
 
 	public static boolean isModLoaded(String modid) {
@@ -488,6 +490,7 @@ public final class CommonProxy implements ModInitializer {
 
 	public static int showOrHideFromServer(Collection<ServerPlayer> players, boolean show) {
 		ShowOverlayPacket packet = new ShowOverlayPacket(show);
+		players = players.stream().filter((player -> ((IJadeServerPlayer) player).jade$isConnected())).toList();
 		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, packet);
 		}
@@ -624,7 +627,8 @@ public final class CommonProxy implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(ReceiveDataPacket.TYPE, ReceiveDataPacket.CODEC);
 		PayloadTypeRegistry.playC2S().register(RequestBlockPacket.TYPE, RequestBlockPacket.CODEC);
 		PayloadTypeRegistry.playC2S().register(RequestEntityPacket.TYPE, RequestEntityPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(ServerPingPacket.TYPE, ServerPingPacket.CODEC);
+		PayloadTypeRegistry.playC2S().register(ClientHandshakePacket.TYPE, ClientHandshakePacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ServerHandshakePacket.TYPE, ServerHandshakePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ShowOverlayPacket.TYPE, ShowOverlayPacket.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(RequestEntityPacket.TYPE, (payload, context) -> {
 			RequestEntityPacket.handle(payload, context::player);
@@ -632,9 +636,11 @@ public final class CommonProxy implements ModInitializer {
 		ServerPlayNetworking.registerGlobalReceiver(RequestBlockPacket.TYPE, (payload, context) -> {
 			RequestBlockPacket.handle(payload, context::player);
 		});
+		ServerPlayNetworking.registerGlobalReceiver(ClientHandshakePacket.TYPE, (payload, context) -> {
+			ClientHandshakePacket.handle(payload, context::player);
+		});
 
 		CommandRegistrationCallback.EVENT.register(CommonProxy::registerServerCommand);
-		ServerPlayConnectionEvents.JOIN.register(CommonProxy::playerJoin);
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			if (server.isDedicatedServer()) {
 				loadComplete();

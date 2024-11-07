@@ -21,24 +21,24 @@ import snownee.jade.impl.WailaClientRegistration;
 import snownee.jade.impl.WailaCommonRegistration;
 import snownee.jade.util.JadeCodecs;
 
-public record ServerPingPacket(
+public record ServerHandshakePacket(
 		Map<ResourceLocation, Object> serverConfig,
 		List<Block> shearableBlocks,
 		List<ResourceLocation> blockProviderIds,
 		List<ResourceLocation> entityProviderIds) implements CustomPacketPayload {
-	public static final Type<ServerPingPacket> TYPE = new Type<>(JadeIds.PACKET_SERVER_PING);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ServerPingPacket> CODEC = StreamCodec.composite(
+	public static final Type<ServerHandshakePacket> TYPE = new Type<>(JadeIds.PACKET_SERVER_HANDSHAKE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ServerHandshakePacket> CODEC = StreamCodec.composite(
 			ByteBufCodecs.map(Maps::newHashMapWithExpectedSize, ResourceLocation.STREAM_CODEC, JadeCodecs.PRIMITIVE_STREAM_CODEC),
-			ServerPingPacket::serverConfig,
+			ServerHandshakePacket::serverConfig,
 			ByteBufCodecs.registry(Registries.BLOCK).apply(ByteBufCodecs.list()),
-			ServerPingPacket::shearableBlocks,
+			ServerHandshakePacket::shearableBlocks,
 			ByteBufCodecs.<ByteBuf, ResourceLocation>list().apply(ResourceLocation.STREAM_CODEC),
-			ServerPingPacket::blockProviderIds,
+			ServerHandshakePacket::blockProviderIds,
 			ByteBufCodecs.<ByteBuf, ResourceLocation>list().apply(ResourceLocation.STREAM_CODEC),
-			ServerPingPacket::entityProviderIds,
-			ServerPingPacket::new);
+			ServerHandshakePacket::entityProviderIds,
+			ServerHandshakePacket::new);
 
-	public static void handle(ServerPingPacket message, ClientPayloadContext context) {
+	public static void handle(ServerHandshakePacket message, ClientPayloadContext context) {
 		context.execute(() -> {
 			ObjectDataCenter.serverConnected = true;
 			HarvestToolProvider.INSTANCE.setShearableBlocks(message.shearableBlocks);
