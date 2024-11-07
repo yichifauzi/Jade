@@ -3,6 +3,7 @@ package snownee.jade.network;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.netty.buffer.ByteBuf;
@@ -35,7 +36,7 @@ public record RequestBlockPacket(
 	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public @NotNull Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 }

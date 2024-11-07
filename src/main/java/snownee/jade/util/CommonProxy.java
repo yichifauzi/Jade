@@ -10,9 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Stopwatch;
@@ -412,19 +410,24 @@ public final class CommonProxy implements ModInitializer {
 		return stack == null ? ItemStack.EMPTY : stack;
 	}
 
-	public static void playerHandshake(String clientVersion, @NotNull ServerPlayer player) {
-		if (Jade.PROTOCOL_VERSION.equals(clientVersion)) {
-			((IJadeServerPlayer) player).jade$setClientVersion(clientVersion);
-			((IJadeServerPlayer) player).jade$setConnected(true);
-			Map<ResourceLocation, Object> configs = ServerPluginConfig.instance().values();
-			List<Block> shearableBlocks = HarvestToolProvider.INSTANCE.getShearableBlocks();
-			if (!configs.isEmpty()) {
-				Jade.LOGGER.debug("Syncing config to {} ({})", player.getGameProfile().getName(), player.getGameProfile().getId());
-			}
-			List<ResourceLocation> blockProviderIds = WailaCommonRegistration.instance().blockDataProviders.mappedIds();
-			List<ResourceLocation> entityProviderIds = WailaCommonRegistration.instance().entityDataProviders.mappedIds();
-			ServerPlayNetworking.send(player, new ServerHandshakePacket(configs, shearableBlocks, blockProviderIds, entityProviderIds));
+	public static void playerHandshake(String clientVersion, ServerPlayer player) {
+		if (!Jade.PROTOCOL_VERSION.equals(clientVersion)) {
+			String version = FabricLoader.getInstance()
+					.getModContainer(Jade.ID)
+					.map($ -> $.getMetadata().getVersion().getFriendlyString())
+					.orElse("UNKNOWN");
+			player.displayClientMessage(Component.translatable("jade.protocolMismatch", version), false);
+			return;
 		}
+		((JadeServerPlayer) player).jade$setConnected(true);
+		Map<ResourceLocation, Object> configs = ServerPluginConfig.instance().values();
+		List<Block> shearableBlocks = HarvestToolProvider.INSTANCE.getShearableBlocks();
+		if (!configs.isEmpty()) {
+			Jade.LOGGER.debug("Syncing config to {} ({})", player.getGameProfile().getName(), player.getGameProfile().getId());
+		}
+		List<ResourceLocation> blockProviderIds = WailaCommonRegistration.instance().blockDataProviders.mappedIds();
+		List<ResourceLocation> entityProviderIds = WailaCommonRegistration.instance().entityDataProviders.mappedIds();
+		ServerPlayNetworking.send(player, new ServerHandshakePacket(configs, shearableBlocks, blockProviderIds, entityProviderIds));
 	}
 
 	public static boolean isModLoaded(String modid) {
@@ -490,7 +493,7 @@ public final class CommonProxy implements ModInitializer {
 
 	public static int showOrHideFromServer(Collection<ServerPlayer> players, boolean show) {
 		ShowOverlayPacket packet = new ShowOverlayPacket(show);
-		players = players.stream().filter((player -> ((IJadeServerPlayer) player).jade$isConnected())).toList();
+		players = players.stream().filter((player -> ((JadeServerPlayer) player).jade$isConnected())).toList();
 		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, packet);
 		}
