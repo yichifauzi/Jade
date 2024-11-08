@@ -610,6 +610,7 @@ public final class CommonProxy implements ModInitializer {
 		return false;
 	}
 
+	@Nullable
 	public static <T> Map.Entry<ResourceLocation, List<ViewGroup<T>>> getServerExtensionData(
 			Accessor<?> accessor,
 			WrappedHierarchyLookup<IServerExtensionProvider<T>> lookup) {

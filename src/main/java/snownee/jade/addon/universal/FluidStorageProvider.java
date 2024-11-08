@@ -1,6 +1,7 @@
 package snownee.jade.addon.universal;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -109,22 +110,15 @@ public abstract class FluidStorageProvider<T extends Accessor<?>> implements ICo
 	}
 
 	public static void putData(Accessor<?> accessor) {
-		CompoundTag tag = accessor.getServerData();
-		for (var provider : WailaCommonRegistration.instance().fluidStorageProviders.get(accessor)) {
-			List<ViewGroup<CompoundTag>> groups;
-			try {
-				groups = provider.getGroups(accessor);
-			} catch (Exception e) {
-				WailaExceptionHandler.handleErr(e, provider, null);
-				continue;
-			}
-			if (groups != null) {
-				if (ViewGroup.saveList(tag, "JadeFluidStorage", groups, Function.identity())) {
-					tag.putString("JadeFluidStorageUid", provider.getUid().toString());
-				}
-				return;
-			}
+		Map.Entry<ResourceLocation, List<ViewGroup<CompoundTag>>> entry = CommonProxy.getServerExtensionData(
+				accessor,
+				WailaCommonRegistration.instance().fluidStorageProviders);
+		if (entry == null) {
+			return;
 		}
+		CompoundTag tag = accessor.getServerData();
+		ViewGroup.saveList(tag, "JadeFluidStorage", entry.getValue(), Function.identity());
+		tag.putString("JadeFluidStorageUid", entry.getKey().toString());
 	}
 
 	@Override
@@ -152,12 +146,7 @@ public abstract class FluidStorageProvider<T extends Accessor<?>> implements ICo
 		if (!accessor.showDetails() && IWailaConfig.get().getPlugin().get(JadeIds.UNIVERSAL_FLUID_STORAGE_DETAILED)) {
 			return false;
 		}
-		for (var provider : WailaCommonRegistration.instance().fluidStorageProviders.get(accessor)) {
-			if (provider.shouldRequestData(accessor)) {
-				return true;
-			}
-		}
-		return false;
+		return WailaCommonRegistration.instance().fluidStorageProviders.hitsAny(accessor, IServerExtensionProvider::shouldRequestData);
 	}
 
 	public enum Extension implements IServerExtensionProvider<CompoundTag>, IClientExtensionProvider<CompoundTag, FluidView> {
