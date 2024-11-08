@@ -573,6 +573,7 @@ public final class CommonProxy {
 				event.getUpdateCause() == TagsUpdatedEvent.UpdateCause.CLIENT_PACKET_RECEIVED));
 	}
 
+	@Nullable
 	public static <T> Map.Entry<ResourceLocation, List<ViewGroup<T>>> getServerExtensionData(
 			Accessor<?> accessor,
 			WrappedHierarchyLookup<IServerExtensionProvider<T>> lookup) {

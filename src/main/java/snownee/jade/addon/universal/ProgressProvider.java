@@ -1,6 +1,7 @@
 package snownee.jade.addon.universal;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -20,10 +21,12 @@ import snownee.jade.api.ui.BoxStyle;
 import snownee.jade.api.ui.IElementHelper;
 import snownee.jade.api.ui.ScreenDirection;
 import snownee.jade.api.view.ClientViewGroup;
+import snownee.jade.api.view.IServerExtensionProvider;
 import snownee.jade.api.view.ProgressView;
 import snownee.jade.api.view.ViewGroup;
 import snownee.jade.impl.WailaClientRegistration;
 import snownee.jade.impl.WailaCommonRegistration;
+import snownee.jade.util.CommonProxy;
 import snownee.jade.util.WailaExceptionHandler;
 
 public abstract class ProgressProvider<T extends Accessor<?>> implements IComponentProvider<T>, IServerDataProvider<T> {
@@ -88,22 +91,15 @@ public abstract class ProgressProvider<T extends Accessor<?>> implements ICompon
 	}
 
 	public static void putData(Accessor<?> accessor) {
-		CompoundTag tag = accessor.getServerData();
-		for (var provider : WailaCommonRegistration.instance().progressProviders.get(accessor)) {
-			List<ViewGroup<CompoundTag>> groups;
-			try {
-				groups = provider.getGroups(accessor);
-			} catch (Exception e) {
-				WailaExceptionHandler.handleErr(e, provider, null);
-				continue;
-			}
-			if (groups != null) {
-				if (ViewGroup.saveList(tag, "JadeProgress", groups, Function.identity())) {
-					tag.putString("JadeProgressUid", provider.getUid().toString());
-				}
-				return;
-			}
+		Map.Entry<ResourceLocation, List<ViewGroup<CompoundTag>>> entry = CommonProxy.getServerExtensionData(
+				accessor,
+				WailaCommonRegistration.instance().progressProviders);
+		if (entry == null) {
+			return;
 		}
+		CompoundTag tag = accessor.getServerData();
+		ViewGroup.saveList(tag, "JadeProgress", entry.getValue(), Function.identity());
+		tag.putString("JadeProgressUid", entry.getKey().toString());
 	}
 
 	@Override
@@ -118,12 +114,7 @@ public abstract class ProgressProvider<T extends Accessor<?>> implements ICompon
 
 	@Override
 	public boolean shouldRequestData(T accessor) {
-		for (var provider : WailaCommonRegistration.instance().progressProviders.get(accessor)) {
-			if (provider.shouldRequestData(accessor)) {
-				return true;
-			}
-		}
-		return false;
+		return WailaCommonRegistration.instance().progressProviders.hitsAny(accessor, IServerExtensionProvider::shouldRequestData);
 	}
 
 	@Override
