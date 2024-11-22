@@ -21,6 +21,7 @@ import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -48,11 +49,12 @@ public class ThemeHelper extends SimpleJsonResourceReloadListener<JadeClientCode
 	private Theme fallback;
 
 	public ThemeHelper() {
-		super(RecordCodecBuilder.create(i -> i.group(
-				ExtraCodecs.NON_NEGATIVE_INT.fieldOf("version").forGetter(JadeClientCodecs.ThemeHolder::version),
-				Codec.BOOL.optionalFieldOf("autoEnable", false).forGetter(JadeClientCodecs.ThemeHolder::autoEnable),
-				JadeClientCodecs.THEME.forGetter(JadeClientCodecs.ThemeHolder::theme)
-		).apply(i, JadeClientCodecs.ThemeHolder::new)), "jade_themes");
+		super(
+				RecordCodecBuilder.create(i -> i.group(
+						ExtraCodecs.NON_NEGATIVE_INT.fieldOf("version").forGetter(JadeClientCodecs.ThemeHolder::version),
+						Codec.BOOL.optionalFieldOf("autoEnable", false).forGetter(JadeClientCodecs.ThemeHolder::autoEnable),
+						JadeClientCodecs.THEME.forGetter(JadeClientCodecs.ThemeHolder::theme)
+				).apply(i, JadeClientCodecs.ThemeHolder::new)), FileToIdConverter.json("jade_themes"));
 	}
 
 	public static Style colorStyle(int color) {

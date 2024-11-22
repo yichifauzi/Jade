@@ -2,14 +2,11 @@ package snownee.jade.gui;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.ChatFormatting;
@@ -18,8 +15,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.navigation.ScreenAxis;
 import net.minecraft.client.gui.screens.Screen;
@@ -38,7 +33,6 @@ import snownee.jade.gui.config.value.OptionValue;
 public abstract class BaseOptionsScreen extends Screen {
 
 	protected final Screen parent;
-	private final Set<GuiEventListener> entryWidgets = Sets.newIdentityHashSet();
 	public Button saveButton;
 	protected Runnable saver;
 	protected Runnable canceller;
@@ -54,9 +48,8 @@ public abstract class BaseOptionsScreen extends Screen {
 	@Override
 	protected void init() {
 		Objects.requireNonNull(minecraft);
-		double scroll = options == null ? 0 : options.getScrollAmount();
+		double scroll = options == null ? 0 : options.scrollAmount();
 		super.init();
-		entryWidgets.clear();
 		if (options != null) {
 			options.removed();
 		}
@@ -92,21 +85,23 @@ public abstract class BaseOptionsScreen extends Screen {
 		searchBox.responder.accept(searchBox.getValue());
 		options.forceSetScrollAmount(scroll);
 
-		saveButton = addRenderableWidget(Button.builder(Component.translatable("gui.jade.save_and_quit")
-				.withStyle(style -> style.withColor(0xFFB9F6CA)), w -> {
-			if (options.invalidEntry == null) {
-				options.save();
-				saver.run();
-				minecraft.setScreen(parent);
-			} else {
-				changeFocus(ComponentPath.path(options.invalidEntry.getFirstWidget(), options.invalidEntry, options, this));
-				options.ensureVisible(options.invalidEntry);
-			}
-		}).bounds(width - 100, height - 25, 90, 20).build());
+		saveButton = addRenderableWidget(Button.builder(
+				Component.translatable("gui.jade.save_and_quit")
+						.withStyle(style -> style.withColor(0xFFB9F6CA)), w -> {
+					if (options.invalidEntry == null) {
+						options.save();
+						saver.run();
+						minecraft.setScreen(parent);
+					} else {
+						changeFocus(ComponentPath.path(options.invalidEntry.getFirstWidget(), options.invalidEntry, options, this));
+						options.ensureVisible(options.invalidEntry);
+					}
+				}).bounds(width - 100, height - 25, 90, 20).build());
 		if (canceller != null) {
-			addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, w -> {
-				onClose();
-			}).bounds(saveButton.getX() - 95, height - 25, 90, 20).build());
+			addRenderableWidget(Button.builder(
+					CommonComponents.GUI_CANCEL, w -> {
+						onClose();
+					}).bounds(saveButton.getX() - 95, height - 25, 90, 20).build());
 		}
 
 		options.updateSaveState();
@@ -217,48 +212,9 @@ public abstract class BaseOptionsScreen extends Screen {
 		options.removed();
 	}
 
-	public <T extends GuiEventListener & NarratableEntry> T addEntryWidget(T widget) {
-		entryWidgets.add(widget);
-		return super.addWidget(widget);
-	}
-
-	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int p_94697_) {
-		boolean onList = options.isMouseOver(mouseX, mouseY);
-		for (GuiEventListener guieventlistener : children()) {
-			if (!onList && entryWidgets.contains(guieventlistener)) {
-				continue;
-			}
-			if (guieventlistener.mouseClicked(mouseX, mouseY, p_94697_)) {
-				setFocused(guieventlistener);
-				if (p_94697_ == 0) {
-					setDragging(true);
-				}
-
-				return true;
-			}
-		}
-		return false;
-	}
-
 	@Override
 	public boolean shouldCloseOnEsc() {
 		return options.selectedKey == null;
-	}
-
-	@Override
-	public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
-		boolean onList = options != null && options.isMouseOver(mouseX, mouseY);
-		for (GuiEventListener guieventlistener : children()) {
-			if (!onList && entryWidgets.contains(guieventlistener)) {
-				continue;
-			}
-			if (guieventlistener.isMouseOver(mouseX, mouseY)) {
-				return Optional.of(guieventlistener);
-			}
-		}
-
-		return Optional.empty();
 	}
 
 	public OptionsNav getOptionsNav() {

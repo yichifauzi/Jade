@@ -1,55 +1,25 @@
 package snownee.jade.mixin;
 
-import org.joml.Matrix4f;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.overlay.DisplayHelper;
 
-@Mixin(Font.StringRenderOutput.class)
+@Mixin(value = Font.StringRenderOutput.class, priority = 500)
 public class StringRenderOutputMixin {
 
-	@Mutable
-	@Shadow
-	@Final
-	private float dimFactor;
-	@Mutable
-	@Shadow
-	@Final
-	private int color;
-	@Shadow
-	@Final
-	private boolean dropShadow;
-
-	@Inject(
-			method = "<init>(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/renderer/MultiBufferSource;FFIIZLorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;IZ)V",
-			at = @At("RETURN"))
-	private void jade$init(
-			Font font,
-			MultiBufferSource multiBufferSource,
-			float f,
-			float g,
-			int i,
-			int j,
-			boolean bl,
-			Matrix4f matrix4f,
-			Font.DisplayMode displayMode,
-			int k,
-			boolean bl2,
-			CallbackInfo ci) {
-		if (dropShadow && DisplayHelper.enableBetterTextShadow() && IThemeHelper.get().isLightColorScheme()) {
-			dimFactor = 1;
-			color = IWailaConfig.Overlay.applyAlpha(i, 0.15F);
+	@WrapOperation(method = "getShadowColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ARGB;scaleRGB(IF)I"))
+	private int jade$getShadowColor(int i, float f, Operation<Integer> original) {
+		if (DisplayHelper.enableBetterTextShadow() && IThemeHelper.get().isLightColorScheme()) {
+			return IWailaConfig.Overlay.applyAlpha(i, 0.15F);
 		}
+		return original.call(i, f);
 	}
 
 }

@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.BarrelBlock;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CreakingHeartBlock;
 import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerState;
 import net.minecraft.world.level.block.entity.vault.VaultState;
@@ -59,11 +60,6 @@ public class BlockDetailsProvider implements IBlockComponentProvider {
 				AccessibilityPlugin.replaceTitle(tooltip, "block.hatch.2");
 			}
 		}
-		if (blockState.hasProperty(BlockStateProperties.CREAKING)) {
-			AccessibilityPlugin.replaceTitle(
-					tooltip,
-					"block.creaking." + blockState.getValue(BlockStateProperties.CREAKING).getSerializedName());
-		}
 		if (blockState.hasProperty(BlockStateProperties.POWERED) && blockState.getValue(BlockStateProperties.POWERED)) {
 			if (block instanceof RepeaterBlock || block instanceof BaseRailBlock) {
 				AccessibilityPlugin.replaceTitle(tooltip, "block.powered");
@@ -75,6 +71,8 @@ public class BlockDetailsProvider implements IBlockComponentProvider {
 			active = true;
 		} else if (blockState.hasProperty(BlockStateProperties.TRIAL_SPAWNER_STATE) &&
 				blockState.getValue(BlockStateProperties.TRIAL_SPAWNER_STATE) == TrialSpawnerState.ACTIVE) {
+			active = true;
+		} else if (blockState.getBlock() instanceof CreakingHeartBlock && blockState.getValue(BlockStateProperties.ACTIVE)) {
 			active = true;
 		}
 		if (active) {

@@ -23,9 +23,7 @@ import com.mojang.brigadier.CommandDispatcher;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.block.BlockPickInteractionAware;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.EntityPickInteractionAware;
 import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -41,7 +39,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -143,11 +140,12 @@ public final class CommonProxy implements ModInitializer {
 
 	public static String getModIdFromItem(ItemStack stack) {
 		if (isPhysicallyClient()) {
-			CustomModelData modelData = stack.getOrDefault(DataComponents.CUSTOM_MODEL_DATA, CustomModelData.DEFAULT);
-			if (!CustomModelData.DEFAULT.equals(modelData)) {
-				String key = "jade.customModelData.%s.namespace".formatted(modelData.value());
-				if (I18n.exists(key)) {
-					return I18n.get(key);
+			CustomModelData modelData = stack.getOrDefault(DataComponents.CUSTOM_MODEL_DATA, CustomModelData.EMPTY);
+			if (!CustomModelData.EMPTY.equals(modelData)) {
+				for (String string : modelData.strings()) {
+					if (string.startsWith("namespace:")) {
+						return string.substring(10);
+					}
 				}
 			}
 		}
@@ -208,12 +206,13 @@ public final class CommonProxy implements ModInitializer {
 
 	public static ItemCollector<?> createItemCollector(Accessor<?> accessor, Cache<Object, ItemCollector<?>> containerCache) {
 		if (accessor.getTarget() instanceof AbstractHorseAccess) {
-			return new ItemCollector<>(new ItemIterator.ContainerItemIterator(o -> {
-				if (o instanceof AbstractHorseAccess horse) {
-					return horse.getInventory();
-				}
-				return null;
-			}, 2));
+			return new ItemCollector<>(new ItemIterator.ContainerItemIterator(
+					o -> {
+						if (o instanceof AbstractHorseAccess horse) {
+							return horse.getInventory();
+						}
+						return null;
+					}, 2));
 		}
 		try {
 			var storage = findItemHandler(accessor);
@@ -226,23 +225,24 @@ public final class CommonProxy implements ModInitializer {
 		final Container container = findContainer(accessor);
 		if (container != null) {
 			if (container instanceof ChestBlockEntity) {
-				return new ItemCollector<>(new ItemIterator.ContainerItemIterator(a -> {
-					if (a.getTarget() instanceof ChestBlockEntity be) {
-						if (be.getBlockState().getBlock() instanceof ChestBlock chestBlock) {
-							Container compound = ChestBlock.getContainer(
-									chestBlock,
-									be.getBlockState(),
-									Objects.requireNonNull(be.getLevel()),
-									be.getBlockPos(),
-									false);
-							if (compound != null) {
-								return compound;
+				return new ItemCollector<>(new ItemIterator.ContainerItemIterator(
+						a -> {
+							if (a.getTarget() instanceof ChestBlockEntity be) {
+								if (be.getBlockState().getBlock() instanceof ChestBlock chestBlock) {
+									Container compound = ChestBlock.getContainer(
+											chestBlock,
+											be.getBlockState(),
+											Objects.requireNonNull(be.getLevel()),
+											be.getBlockPos(),
+											false);
+									if (compound != null) {
+										return compound;
+									}
+								}
+								return be;
 							}
-						}
-						return be;
-					}
-					return null;
-				}, 0));
+							return null;
+						}, 0));
 			}
 			return new ItemCollector<>(new ItemIterator.ContainerItemIterator(0));
 		}
@@ -395,17 +395,10 @@ public final class CommonProxy implements ModInitializer {
 	}
 
 	public static ItemStack getBlockPickedResult(BlockState state, Player player, BlockHitResult hitResult) {
-		Block block = state.getBlock();
-		if (block instanceof BlockPickInteractionAware) {
-			return ((BlockPickInteractionAware) block).getPickedStack(state, player.level(), hitResult.getBlockPos(), player, hitResult);
-		}
-		return block.getCloneItemStack(player.level(), hitResult.getBlockPos(), state);
+		return state.getCloneItemStack(player.level(), hitResult.getBlockPos(), true);
 	}
 
 	public static ItemStack getEntityPickedResult(Entity entity, Player player, EntityHitResult hitResult) {
-		if (entity instanceof EntityPickInteractionAware) {
-			return ((EntityPickInteractionAware) entity).getPickedStack(player, hitResult);
-		}
 		ItemStack stack = entity.getPickResult();
 		return stack == null ? ItemStack.EMPTY : stack;
 	}
@@ -633,15 +626,18 @@ public final class CommonProxy implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(ClientHandshakePacket.TYPE, ClientHandshakePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ServerHandshakePacket.TYPE, ServerHandshakePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ShowOverlayPacket.TYPE, ShowOverlayPacket.CODEC);
-		ServerPlayNetworking.registerGlobalReceiver(RequestEntityPacket.TYPE, (payload, context) -> {
-			RequestEntityPacket.handle(payload, context::player);
-		});
-		ServerPlayNetworking.registerGlobalReceiver(RequestBlockPacket.TYPE, (payload, context) -> {
-			RequestBlockPacket.handle(payload, context::player);
-		});
-		ServerPlayNetworking.registerGlobalReceiver(ClientHandshakePacket.TYPE, (payload, context) -> {
-			ClientHandshakePacket.handle(payload, context::player);
-		});
+		ServerPlayNetworking.registerGlobalReceiver(
+				RequestEntityPacket.TYPE, (payload, context) -> {
+					RequestEntityPacket.handle(payload, context::player);
+				});
+		ServerPlayNetworking.registerGlobalReceiver(
+				RequestBlockPacket.TYPE, (payload, context) -> {
+					RequestBlockPacket.handle(payload, context::player);
+				});
+		ServerPlayNetworking.registerGlobalReceiver(
+				ClientHandshakePacket.TYPE, (payload, context) -> {
+					ClientHandshakePacket.handle(payload, context::player);
+				});
 
 		CommandRegistrationCallback.EVENT.register(CommonProxy::registerServerCommand);
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {

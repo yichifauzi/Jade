@@ -94,14 +94,15 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
 		return Math.min(width, 300);
 	}
 
+	//TODO: check if it is still needed
 	@Override
-	protected int getScrollbarPosition() {
+	protected int scrollBarX() {
 		return owner.width - 6;
 	}
 
 	@Override
 	public void setScrollAmount(double scroll) {
-		smoothScroll.target(Mth.clamp((float) scroll, 0, getMaxScroll()));
+		smoothScroll.target(Mth.clamp((float) scroll, 0, maxScrollAmount()));
 	}
 
 	public void forceSetScrollAmount(double scroll) {
@@ -132,7 +133,8 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
 	@Override
 	public ComponentPath nextFocusPath(FocusNavigationEvent event) {
 		OptionsNav.Entry navEntry = owner.getOptionsNav().getFocused();
-		if (navEntry != null && event instanceof FocusNavigationEvent.ArrowNavigation nav && nav.direction() == ScreenDirection.RIGHT) {
+		if (navEntry != null && event instanceof FocusNavigationEvent.ArrowNavigation(ScreenDirection direction) &&
+				direction == ScreenDirection.RIGHT) {
 			Title title = navEntry.getTitle();
 			setFocused(title);
 			ComponentPath path = super.nextFocusPath(new FocusNavigationEvent.ArrowNavigation(ScreenDirection.DOWN));
@@ -142,6 +144,7 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
 		return super.nextFocusPath(event);
 	}
 
+	// public-access it
 	@Override
 	public void ensureVisible(Entry entry) {
 		super.ensureVisible(entry);
@@ -170,7 +173,7 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
 	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		float deltaTicks = Minecraft.getInstance().getDeltaTracker().getRealtimeDeltaTicks();
 		smoothScroll.tick(deltaTicks);
-		super.setScrollAmount(smoothScroll.value);
+		super.setScrollAmount(Math.round(smoothScroll.value));
 		hovered = null;
 		if (!PreviewOptionsScreen.isAdjustingPosition()) {
 			InputType lastInputType = minecraft.getLastInputType();
@@ -194,18 +197,8 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
 		enableScissor(guiGraphics);
 		renderListItems(guiGraphics, mouseX, mouseY, partialTicks);
 		guiGraphics.disableScissor();
-		this.renderListSeparators(guiGraphics);
-		if (this.scrollbarVisible()) {
-			int k = this.getScrollbarPosition();
-			int l = (int) ((float) (this.height * this.height) / (float) this.getMaxPosition());
-			l = Mth.clamp(l, 32, this.height - 8);
-			int m = (int) this.getScrollAmount() * (this.height - l) / this.getMaxScroll() + this.getY();
-			if (m < this.getY()) {
-				m = this.getY();
-			}
-			guiGraphics.blitSprite(RenderType::guiTextured, SCROLLER_BACKGROUND_SPRITE, k, this.getY(), 6, this.getHeight());
-			guiGraphics.blitSprite(RenderType::guiTextured, SCROLLER_SPRITE, k, m, 6, l);
-		}
+		renderListSeparators(guiGraphics);
+		renderScrollbar(guiGraphics);
 		renderDecorations(guiGraphics, mouseX, mouseY);
 	}
 

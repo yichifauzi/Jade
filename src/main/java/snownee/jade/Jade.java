@@ -18,7 +18,6 @@ import snownee.jade.impl.WailaCommonRegistration;
 import snownee.jade.impl.config.WailaConfig;
 import snownee.jade.test.ExamplePlugin;
 import snownee.jade.util.CommonProxy;
-import snownee.jade.util.JadeFabricUtils;
 import snownee.jade.util.JsonConfig;
 
 public class Jade {

@@ -30,7 +30,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.config.IWailaConfig.Overlay;
@@ -286,7 +285,7 @@ public class DisplayHelper implements IDisplayHelper {
 			return;
 		}
 		Matrix4f matrix = guiGraphics.pose().last().pose();
-		VertexConsumer vertexConsumer = guiGraphics.bufferSource.getBuffer(function.apply(InventoryMenu.BLOCK_ATLAS));
+		VertexConsumer vertexConsumer = guiGraphics.bufferSource.getBuffer(function.apply(sprite.atlasLocation()));
 
 		final int xTileCount = (int) (tiledWidth / TEX_WIDTH);
 		final float xRemainder = tiledWidth - (xTileCount * TEX_WIDTH);

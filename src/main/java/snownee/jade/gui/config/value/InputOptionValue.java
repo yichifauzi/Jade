@@ -1,5 +1,6 @@
 package snownee.jade.gui.config.value;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -22,39 +23,13 @@ public class InputOptionValue<T> extends OptionValue<T> {
 		updateValue();
 		textField.setResponder(s -> {
 			if (this.validator.test(s)) {
-				textField.setTextColor(ChatFormatting.WHITE.getColor());
+				textField.setTextColor(Objects.requireNonNull(ChatFormatting.WHITE.getColor()));
 			} else {
-				textField.setTextColor(ChatFormatting.RED.getColor());
+				textField.setTextColor(Objects.requireNonNull(ChatFormatting.RED.getColor()));
 			}
 			responder.run();
 		});
 		addWidget(textField, 0);
-	}
-
-	private void setValue(String text) {
-		if (value instanceof String) {
-			value = (T) text;
-		}
-
-		try {
-			if (value instanceof Integer) {
-				value = (T) Integer.valueOf(text);
-			} else if (value instanceof Short) {
-				value = (T) Short.valueOf(text);
-			} else if (value instanceof Byte) {
-				value = (T) Byte.valueOf(text);
-			} else if (value instanceof Long) {
-				value = (T) Long.valueOf(text);
-			} else if (value instanceof Double) {
-				value = (T) Double.valueOf(text);
-			} else if (value instanceof Float) {
-				value = (T) Float.valueOf(text);
-			}
-		} catch (NumberFormatException e) {
-			// no-op
-		}
-
-		save();
 	}
 
 	@Override

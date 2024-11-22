@@ -43,6 +43,7 @@ public class SmoothChasingValue {
 	public void tick(float pTicks) {
 		float diff = getCurrentDiff();
 		if (Math.abs(diff) < eps) {
+			set(target);
 			return;
 		}
 		set(value + diff * speed * pTicks);
