@@ -6,12 +6,14 @@ import java.text.Format;
 import java.text.NumberFormat;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
+import com.google.common.base.Suppliers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
@@ -38,11 +40,11 @@ import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.api.ui.Color;
 import snownee.jade.api.ui.IDisplayHelper;
 import snownee.jade.util.ClientProxy;
+import snownee.jade.util.JadeFont;
 
 public class DisplayHelper implements IDisplayHelper {
 
 	public static final DisplayHelper INSTANCE = new DisplayHelper();
-	private static final Minecraft CLIENT = Minecraft.getInstance();
 	//https://github.com/mezz/JustEnoughItems/blob/1.16/src/main/java/mezz/jei/plugins/vanilla/ingredients/fluid/FluidStackRenderer.java
 	private static final int TEX_WIDTH = 16;
 	private static final int TEX_HEIGHT = 16;
@@ -50,7 +52,7 @@ public class DisplayHelper implements IDisplayHelper {
 	private static final Pattern STRIP_COLOR = Pattern.compile("(?i)\u00a7[0-9A-F]");
 	public static DecimalFormat dfCommas = new DecimalFormat("0.##");
 	public static final DecimalFormat[] dfCommasArray = new DecimalFormat[]{dfCommas, new DecimalFormat("0.#"), new DecimalFormat("0")};
-	private static boolean betterTextShadow;
+	private static final Supplier<JadeFont> FONT = Suppliers.memoize(() -> new JadeFont(Minecraft.getInstance().font));
 
 	static {
 		for (DecimalFormat format : dfCommasArray) {
@@ -146,14 +148,6 @@ public class DisplayHelper implements IDisplayHelper {
 		guiGraphics.flush();
 	}
 
-	public static boolean enableBetterTextShadow() {
-		return betterTextShadow;
-	}
-
-	public static void setBetterTextShadow(boolean betterTextShadow) {
-		DisplayHelper.betterTextShadow = betterTextShadow;
-	}
-
 	@Override
 	public void drawItem(GuiGraphics guiGraphics, float x, float y, ItemStack stack, float scale, @Nullable String text) {
 		if (opacity() < 0.5F) {
@@ -163,7 +157,7 @@ public class DisplayHelper implements IDisplayHelper {
 		guiGraphics.pose().translate(x, y, 0);
 		guiGraphics.pose().scale(scale, scale, scale);
 		guiGraphics.renderFakeItem(stack, 0, 0);
-		renderGuiItemDecorations(guiGraphics, CLIENT.font, stack, 0, 0, text);
+		renderGuiItemDecorations(guiGraphics, font(), stack, 0, 0, text);
 		guiGraphics.pose().popPose();
 	}
 
@@ -246,29 +240,30 @@ public class DisplayHelper implements IDisplayHelper {
 			scaledAmount.setValue(height);
 		}
 
-		ClientProxy.getFluidSpriteAndColor(fluid, (sprite, color) -> {
-			if (sprite == null) {
-				float maxY = yPosition + height;
-				if (color == -1) {
-					color = 0xAAAAAAAA;
-				}
-				fill(guiGraphics, xPosition, maxY - scaledAmount.floatValue(), xPosition + width, maxY, color);
-			} else {
-				if (opacity() != 1) {
-					color = Overlay.applyAlpha(color, opacity());
-				}
-				drawTiledSprite(
-						guiGraphics,
-						RenderType::guiTextured,
-						xPosition,
-						yPosition,
-						width,
-						height,
-						color,
-						scaledAmount.floatValue(),
-						sprite);
-			}
-		});
+		ClientProxy.getFluidSpriteAndColor(
+				fluid, (sprite, color) -> {
+					if (sprite == null) {
+						float maxY = yPosition + height;
+						if (color == -1) {
+							color = 0xAAAAAAAA;
+						}
+						fill(guiGraphics, xPosition, maxY - scaledAmount.floatValue(), xPosition + width, maxY, color);
+					} else {
+						if (opacity() != 1) {
+							color = Overlay.applyAlpha(color, opacity());
+						}
+						drawTiledSprite(
+								guiGraphics,
+								RenderType::guiTextured,
+								xPosition,
+								yPosition,
+								width,
+								height,
+								color,
+								scaledAmount.floatValue(),
+								sprite);
+					}
+				});
 	}
 
 	private void drawTiledSprite(
@@ -386,10 +381,8 @@ public class DisplayHelper implements IDisplayHelper {
 		if (opacity() != 1) {
 			color = Overlay.applyAlpha(color, opacity());
 		}
-		betterTextShadow = true;
-		guiGraphics.drawString(CLIENT.font, text, (int) x, (int) y, color, shadow);
+		guiGraphics.drawString(font(), text, (int) x, (int) y, color, shadow);
 		guiGraphics.bufferSource.endLastBatch();
-		betterTextShadow = false;
 	}
 
 	public void drawGradientProgress(
@@ -415,14 +408,15 @@ public class DisplayHelper implements IDisplayHelper {
 	@Override
 	public MutableComponent stripColor(Component component) {
 		MutableComponent mutableComponent = Component.empty();
-		component.visit((style, string) -> {
-			if (!string.isEmpty()) {
-				MutableComponent literal = Component.literal(STRIP_COLOR.matcher(string).replaceAll(""));
-				literal.withStyle(style.withColor((TextColor) null));
-				mutableComponent.append(literal);
-			}
-			return Optional.empty();
-		}, Style.EMPTY);
+		component.visit(
+				(style, string) -> {
+					if (!string.isEmpty()) {
+						MutableComponent literal = Component.literal(STRIP_COLOR.matcher(string).replaceAll(""));
+						literal.withStyle(style.withColor((TextColor) null));
+						mutableComponent.append(literal);
+					}
+					return Optional.empty();
+				}, Style.EMPTY);
 		return mutableComponent;
 	}
 
@@ -430,7 +424,11 @@ public class DisplayHelper implements IDisplayHelper {
 	public void blitSprite(
 			GuiGraphics guiGraphics,
 			Function<ResourceLocation, RenderType> function,
-			ResourceLocation resourceLocation, int i, int j, int k, int l) {
+			ResourceLocation resourceLocation,
+			int i,
+			int j,
+			int k,
+			int l) {
 		guiGraphics.blitSprite(RenderType::guiTextured, resourceLocation, i, j, k, l, ARGB.white(opacity()));
 	}
 
@@ -438,14 +436,20 @@ public class DisplayHelper implements IDisplayHelper {
 	public void blitSprite(
 			GuiGraphics guiGraphics,
 			Function<ResourceLocation, RenderType> function,
-			ResourceLocation resourceLocation, int i, int j, int k, int l, int m) {
+			ResourceLocation resourceLocation,
+			int i,
+			int j,
+			int k,
+			int l,
+			int m) {
 		guiGraphics.blitSprite(RenderType::guiTextured, resourceLocation, i, j, k, l, ARGB.color(ARGB.as8BitChannel(opacity()), m));
 	}
 
 	@Override
 	public void blitSprite(
 			GuiGraphics guiGraphics,
-			Function<ResourceLocation, RenderType> function, ResourceLocation resourceLocation,
+			Function<ResourceLocation, RenderType> function,
+			ResourceLocation resourceLocation,
 			int i,
 			int j,
 			int k,
@@ -460,5 +464,9 @@ public class DisplayHelper implements IDisplayHelper {
 	@Override
 	public float opacity() {
 		return OverlayRenderer.alpha;
+	}
+
+	public static Font font() {
+		return FONT.get();
 	}
 }
