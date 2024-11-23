@@ -120,11 +120,6 @@ public final class JadeClient {
 			if (mode == IWailaConfig.DisplayMode.TOGGLE) {
 				general.setDisplayTooltip(!general.shouldDisplayTooltip());
 				if (!general.shouldDisplayTooltip() && Jade.history().hintOverlayToggle) {
-//					SystemToast.add(
-//							Minecraft.getInstance().getToasts(),
-//							JADE_TUTORIAL,
-//							Component.translatable("toast.jade.toggle_hint.1"),
-//							Component.translatable("toast.jade.toggle_hint.2", showOverlay.getTranslatedKeyMessage()));
 					Minecraft.getInstance().getChatListener().handleSystemMessage(
 							Component.translatable("toast.jade.toggle_hint.1"),
 							false);
@@ -192,7 +187,7 @@ public final class JadeClient {
 	}
 
 	public static void appendModName(List<Component> tooltip, ItemStack stack, Item.TooltipContext tooltipContext, TooltipFlag flag) {
-		if (hideModName.getIfPresent(tooltipContext) != null || !IWailaConfig.get().general().showItemModNameTooltip()) {
+		if (!IWailaConfig.get().general().showItemModNameTooltip() || hideModName.getIfPresent(tooltipContext) != null) {
 			return;
 		}
 		if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen && screen.hoveredSlot != null &&

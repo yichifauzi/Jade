@@ -13,6 +13,7 @@
 	"client": [
 		"BossHealthOverlayMixin",
 		"ClientLevelMixin",
+		"CreativeModeInventoryScreenMixin",
 		"KeyAccess",
 		"SessionSearchTreesMixin",
 		"StringRenderOutputMixin",

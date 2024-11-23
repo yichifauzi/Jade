@@ -110,10 +110,10 @@ public class Jade {
 			configs = list.build();
 			rootConfig().history.checkNewUser(CommonProxy.getConfigDirectory().getAbsolutePath().hashCode());
 			rootConfig().fixData();
+			WailaConfig.init();
 			for (JsonConfig<? extends WailaConfig> config : configs) {
 				config.save();
 			}
-			WailaConfig.init();
 			JadeClient.refreshKeyState();
 		}
 	}
