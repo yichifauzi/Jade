@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.ChatFormatting;
@@ -22,6 +25,7 @@ import snownee.jade.api.TooltipPosition;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.ui.BoxStyle;
+import snownee.jade.api.ui.DisplayStyle;
 import snownee.jade.api.ui.IDisplayHelper;
 import snownee.jade.api.ui.IElementHelper;
 import snownee.jade.api.ui.ProgressStyle;
@@ -90,11 +94,13 @@ public abstract class FluidStorageProvider<T extends Accessor<?>> implements ICo
 			}
 			for (var view : group.views) {
 				Component text;
+				DisplayStyle style = config.getEnum(JadeIds.UNIVERSAL_FLUID_STORAGE_STYLE);
+
 				if (view.overrideText != null) {
 					text = view.overrideText;
 				} else if (view.fluidName == null) {
 					text = Component.literal(view.current);
-				} else if (accessor.showDetails()) {
+				} else if (accessor.showDetails() || style != DisplayStyle.PROGRESSBAR) {
 					text = Component.translatable(
 							"jade.fluid2",
 							IDisplayHelper.get().stripColor(view.fluidName).withStyle(ChatFormatting.WHITE),
@@ -103,8 +109,19 @@ public abstract class FluidStorageProvider<T extends Accessor<?>> implements ICo
 				} else {
 					text = Component.translatable("jade.fluid", IDisplayHelper.get().stripColor(view.fluidName), view.current);
 				}
-				ProgressStyle progressStyle = helper.progressStyle().overlay(view.overlay);
-				theTooltip.add(helper.progress(view.ratio, text, progressStyle, BoxStyle.getNestedBox(), true));
+
+				switch(style) {
+					case TEXT -> theTooltip.add(Component.translatable("jade.fluid.text").append(text));
+					case SYMBOL -> {
+						ResourceLocation location = JadeIds.JADE("fluid");
+						theTooltip.add(helper.smallItem(new ItemStack(Items.BUCKET)));
+						theTooltip.append(text);
+					}
+					default -> {
+						ProgressStyle progressStyle = helper.progressStyle().overlay(view.overlay);
+						theTooltip.add(helper.progress(view.ratio, text, progressStyle, BoxStyle.getNestedBox(), true));
+					}
+				}
 			}
 		});
 	}
