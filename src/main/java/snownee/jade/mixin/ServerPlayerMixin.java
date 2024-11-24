@@ -18,7 +18,7 @@ public abstract class ServerPlayerMixin implements JadeServerPlayer {
 	}
 
 	@Override
-	public void jade$setConnected(boolean is) {
-		this.jade$isConnected = is;
+	public void jade$setConnected(boolean connected) {
+		this.jade$isConnected = connected;
 	}
 }

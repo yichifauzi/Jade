@@ -35,6 +35,8 @@ public class ItemCollector<T> {
 		return true;
 	};
 	private final Object2IntLinkedOpenHashMap<ItemDefinition> items = new Object2IntLinkedOpenHashMap<>();
+//	private final LinkedHashSet<ItemDefinition> sortedByCount = Sets.newLinkedHashSetWithExpectedSize(MAX_SIZE);
+//	private int lastEntryCount;
 	private final ItemIterator<T> iterator;
 	public long version;
 	public long lastTimeFinished;
@@ -76,7 +78,7 @@ public class ItemCollector<T> {
 			updateCollectingProgress(mergedResult.getFirst());
 			return mergedResult;
 		}
-		List<ItemStack> partialResult = items.object2IntEntrySet().stream().limit(54).map(entry -> {
+		List<ItemStack> partialResult = items.object2IntEntrySet().stream().limit(MAX_SIZE).map(entry -> {
 			ItemDefinition def = entry.getKey();
 			return def.toStack(entry.getIntValue());
 		}).toList();
