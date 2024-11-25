@@ -60,6 +60,10 @@ public interface IWailaConfig {
 		CAMERA, EYE
 	}
 
+	enum HandlerDisplayStyle implements SimpleStringRepresentable {
+		PROGRESS_BAR, ICON, PLAIN_TEXT;
+	}
+
 	@NonExtendable
 	interface IConfigGeneral {
 

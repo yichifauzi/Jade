@@ -247,7 +247,6 @@
 	"config.jade.plugin_minecraft.fluid_storage.detailed": "Sólo detallado",
 	"config.jade.plugin_minecraft.fluid_storage.detailed_desc": "Solo muestra información del fluido cuando se presiona ${SHOW_DETAILS}.",
 	"jade.fluid": "%s %s",
-	"jade.fluid2": "%s %s / %s",
 	"jade.fluid.empty": "Vacío",
 	"config.jade.plugin_minecraft.lectern": "Atril",
 	"config.jade.plugin_minecraft.animal_owner": "Dueño del animal",
