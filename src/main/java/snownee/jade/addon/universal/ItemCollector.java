@@ -35,11 +35,12 @@ public class ItemCollector<T> {
 		return true;
 	};
 	private final Object2IntLinkedOpenHashMap<ItemDefinition> items = new Object2IntLinkedOpenHashMap<>();
-//	private final LinkedHashSet<ItemDefinition> sortedByCount = Sets.newLinkedHashSetWithExpectedSize(MAX_SIZE);
+	//	private final LinkedHashSet<ItemDefinition> sortedByCount = Sets.newLinkedHashSetWithExpectedSize(MAX_SIZE);
 //	private int lastEntryCount;
 	private final ItemIterator<T> iterator;
 	public long version;
 	public long lastTimeFinished;
+	public boolean lastTimeIsEmpty;
 	public List<ViewGroup<ItemStack>> mergedResult;
 
 	public ItemCollector(ItemIterator<T> iterator) {
@@ -85,6 +86,7 @@ public class ItemCollector<T> {
 		List<ViewGroup<ItemStack>> groups = List.of(updateCollectingProgress(new ViewGroup<>(partialResult)));
 		if (iterator.isFinished()) {
 			mergedResult = groups;
+			lastTimeIsEmpty = mergedResult.getFirst().views.isEmpty();
 			version = currentVersion;
 			lastTimeFinished = gameTime;
 			items.clear();
@@ -93,12 +95,12 @@ public class ItemCollector<T> {
 	}
 
 	protected ViewGroup<ItemStack> updateCollectingProgress(ViewGroup<ItemStack> group) {
+		if (lastTimeIsEmpty && group.views.isEmpty()) {
+			return group;
+		}
 		float progress = iterator.getCollectingProgress();
 		CompoundTag data = group.getExtraData();
-		if (Float.isNaN(progress)) {
-			progress = 0;
-		}
-		if (progress >= 1) {
+		if (Float.isNaN(progress) || progress >= 1) {
 			data.remove("Collecting");
 		} else {
 			data.putFloat("Collecting", progress);
