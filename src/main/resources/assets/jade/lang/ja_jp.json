@@ -277,7 +277,7 @@
 	"config.jade.plugin_minecraft.fluid_storage.detailed": "詳細のみ",
 	"config.jade.plugin_minecraft.fluid_storage.detailed_desc": "${SHOW_DETAILS}を押した時にのみ流体情報を表示します。",
 	"jade.fluid": "%s %s",
-	"jade.fluid2": "%s %s/%s",
+	"jade.fluid.with_capacity": "%s/%s",
 	"jade.fluid.empty": "空",
 	"config.jade.plugin_minecraft.lectern": "書見台",
 	"config.jade.plugin_minecraft.animal_owner": "動物の所有者",

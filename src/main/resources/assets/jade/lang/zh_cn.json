@@ -269,7 +269,6 @@
 	"config.jade.plugin_minecraft.fluid_storage.detailed": "仅在细节显示",
 	"config.jade.plugin_minecraft.fluid_storage.detailed_desc": "仅在按下${SHOW_DETAILS}时显示。",
 	"jade.fluid": "%s %s",
-	"jade.fluid2": "%s %s / %s",
 	"jade.fluid.empty": "空",
 	"config.jade.plugin_minecraft.lectern": "讲台",
 	"config.jade.plugin_minecraft.animal_owner": "动物主人",

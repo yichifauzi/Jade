@@ -11,6 +11,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec2;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.config.IWailaConfig.Overlay;
+import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.api.ui.Color;
 import snownee.jade.api.ui.ProgressStyle;
 import snownee.jade.api.ui.ScreenDirection;
@@ -26,7 +27,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 	public boolean vertical;
 
 	public SimpleProgressStyle() {
-		color(0xFFFFFFFF);
+		color(-1);
 	}
 
 	private static Vector3f RGBtoHSV(int rgb) {
@@ -134,8 +135,10 @@ public class SimpleProgressStyle extends ProgressStyle {
 				if (overlay == null && RGBtoHSV(color2).z() > 0.75f) {
 					textColor = 0xFF000000;
 				} else {
-					textColor = 0xFFFFFFFF;
+					textColor = IThemeHelper.get().getNormalColor();
 				}
+			} else if (textColor == -1) {
+				textColor = IThemeHelper.get().getNormalColor();
 			}
 			y += height - font.lineHeight;
 			if (vertical && font.lineHeight < progress) {
