@@ -24,7 +24,7 @@ public enum ExampleComponentProvider3 implements IBlockComponentProvider, IServe
 	@Override
 	public void appendServerData(CompoundTag data, BlockAccessor accessor) {
 		AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity) accessor.getBlockEntity();
-		data.putInt("Fuel", furnace.litTime);
+		data.putInt("Fuel", furnace.litTimeRemaining);
 	}
 
 	@Override
