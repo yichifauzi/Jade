@@ -206,7 +206,7 @@ public class EntityAccessorImpl extends AccessorImpl<EntityHitResult> implements
 
 		public EntityAccessor unpack(ServerPlayer player) {
 			Supplier<Entity> entity = Suppliers.memoize(() -> CommonProxy.getPartEntity(player.level().getEntity(id), partIndex));
-			return new EntityAccessorImpl.Builder()
+			return new Builder()
 					.level(player.level())
 					.player(player)
 					.showDetails(showDetails)

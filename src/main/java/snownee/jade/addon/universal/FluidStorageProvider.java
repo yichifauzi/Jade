@@ -5,11 +5,12 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import snownee.jade.api.Accessor;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.EntityAccessor;
@@ -20,6 +21,7 @@ import snownee.jade.api.StreamServerDataProvider;
 import snownee.jade.api.TooltipPosition;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.config.IWailaConfig;
+import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.api.ui.BoxStyle;
 import snownee.jade.api.ui.IDisplayHelper;
 import snownee.jade.api.ui.IElementHelper;
@@ -83,29 +85,47 @@ public abstract class FluidStorageProvider<T extends Accessor<?>> implements ICo
 
 		IElementHelper helper = IElementHelper.get();
 		boolean renderGroup = groups.size() > 1 || groups.getFirst().shouldRenderGroup();
-		ClientViewGroup.tooltip(tooltip, groups, renderGroup, (theTooltip, group) -> {
-			if (renderGroup) {
-				group.renderHeader(theTooltip);
-			}
-			for (var view : group.views) {
-				Component text;
-				if (view.overrideText != null) {
-					text = view.overrideText;
-				} else if (view.fluidName == null) {
-					text = Component.literal(view.current);
-				} else if (accessor.showDetails()) {
-					text = Component.translatable(
-							"jade.fluid2",
-							IDisplayHelper.get().stripColor(view.fluidName).withStyle(ChatFormatting.WHITE),
-							Component.literal(view.current).withStyle(ChatFormatting.WHITE),
-							view.max).withStyle(ChatFormatting.GRAY);
-				} else {
-					text = Component.translatable("jade.fluid", IDisplayHelper.get().stripColor(view.fluidName), view.current);
-				}
-				ProgressStyle progressStyle = helper.progressStyle().overlay(view.overlay);
-				theTooltip.add(helper.progress(view.ratio, text, progressStyle, BoxStyle.getNestedBox(), true));
-			}
-		});
+		ClientViewGroup.tooltip(
+				tooltip, groups, renderGroup, (theTooltip, group) -> {
+					if (renderGroup) {
+						group.renderHeader(theTooltip);
+					}
+					for (var view : group.views) {
+						Component text;
+						IWailaConfig.HandlerDisplayStyle style = config.getEnum(JadeIds.UNIVERSAL_FLUID_STORAGE_STYLE);
+
+						if (view.overrideText != null) {
+							text = view.overrideText;
+						} else if (view.fluidName == null) {
+							// when do we reach here?
+							text = IThemeHelper.get().info(view.current);
+						} else {
+							Component fluidName = IThemeHelper.get().info(IDisplayHelper.get().stripColor(view.fluidName));
+							if (accessor.showDetails() || style != IWailaConfig.HandlerDisplayStyle.PROGRESS_BAR) {
+								text = Component.translatable(
+										"jade.fluid.with_capacity",
+										IThemeHelper.get().info(view.current),
+										view.max);
+							} else {
+								text = IThemeHelper.get().info(view.current);
+							}
+							String key = style == IWailaConfig.HandlerDisplayStyle.PLAIN_TEXT ? "jade.fluid.text" : "jade.fluid";
+							text = Component.translatable(key, fluidName, text);
+						}
+
+						switch (style) {
+							case PLAIN_TEXT -> theTooltip.add(text);
+							case ICON -> {
+								theTooltip.add(helper.smallItem(new ItemStack(Items.BUCKET)));
+								theTooltip.append(text);
+							}
+							case PROGRESS_BAR -> {
+								ProgressStyle progressStyle = helper.progressStyle().overlay(view.overlay);
+								theTooltip.add(helper.progress(view.ratio, text, progressStyle, BoxStyle.getNestedBox(), true));
+							}
+						}
+					}
+				});
 	}
 
 	@Override

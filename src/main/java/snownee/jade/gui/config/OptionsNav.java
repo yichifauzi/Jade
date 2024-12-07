@@ -41,7 +41,7 @@ public class OptionsNav extends ObjectSelectionList<OptionsNav.Entry> {
 		if (focused != null && minecraft.getLastInputType().isKeyboard()) {
 			current = children().indexOf(focused);
 		}
-		double top = getY() + 4 - this.getScrollAmount() + current * this.itemHeight + this.headerHeight;
+		double top = getY() + 4 - this.scrollAmount() + current * this.itemHeight + this.headerHeight;
 		int left = getRowLeft() + 2;
 		guiGraphics.pose().pushPose();
 		guiGraphics.pose().translate(0, top, 0);
@@ -72,8 +72,9 @@ public class OptionsNav extends ObjectSelectionList<OptionsNav.Entry> {
 		return width;
 	}
 
+	//TODO: check if it is still needed
 	@Override
-	protected int getScrollbarPosition() {
+	protected int scrollBarX() {
 		return getRowLeft() + getRowWidth() - 8;
 	}
 

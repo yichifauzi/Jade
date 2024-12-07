@@ -20,10 +20,11 @@ import com.google.common.cache.Cache;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -59,6 +60,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.i18n.MavenVersionTranslator;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LoadingModList;
@@ -72,7 +74,6 @@ import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -100,10 +101,11 @@ import snownee.jade.impl.WailaCommonRegistration;
 import snownee.jade.impl.config.ServerPluginConfig;
 import snownee.jade.impl.lookup.WrappedHierarchyLookup;
 import snownee.jade.mixin.AbstractHorseAccess;
+import snownee.jade.network.ClientHandshakePacket;
 import snownee.jade.network.ReceiveDataPacket;
 import snownee.jade.network.RequestBlockPacket;
 import snownee.jade.network.RequestEntityPacket;
-import snownee.jade.network.ServerPingPacket;
+import snownee.jade.network.ServerHandshakePacket;
 import snownee.jade.network.ShowOverlayPacket;
 
 @Mod(Jade.ID)
@@ -131,11 +133,12 @@ public final class CommonProxy {
 
 	public static String getModIdFromItem(ItemStack stack) {
 		if (isPhysicallyClient()) {
-			CustomModelData modelData = stack.getOrDefault(DataComponents.CUSTOM_MODEL_DATA, CustomModelData.DEFAULT);
-			if (!CustomModelData.DEFAULT.equals(modelData)) {
-				String key = "jade.customModelData.%s.namespace".formatted(modelData.value());
-				if (I18n.exists(key)) {
-					return I18n.get(key);
+			CustomModelData modelData = stack.getOrDefault(DataComponents.CUSTOM_MODEL_DATA, CustomModelData.EMPTY);
+			if (!CustomModelData.EMPTY.equals(modelData)) {
+				for (String string : modelData.strings()) {
+					if (string.startsWith("namespace:")) {
+						return string.substring(10);
+					}
 				}
 			}
 		}
@@ -149,7 +152,11 @@ public final class CommonProxy {
 						.orElse(ResourceLocation.DEFAULT_NAMESPACE);
 			}
 		}
-		return stack.getItem().getCreatorModId(stack);
+		HolderLookup.Provider registries = RegistryAccess.EMPTY;
+		if (isPhysicallyClient() && Minecraft.getInstance().level != null) {
+			registries = Minecraft.getInstance().level.registryAccess();
+		}
+		return stack.getItem().getCreatorModId(registries, stack);
 	}
 
 	public static boolean isPhysicallyClient() {
@@ -158,12 +165,13 @@ public final class CommonProxy {
 
 	public static ItemCollector<?> createItemCollector(Accessor<?> accessor, Cache<Object, ItemCollector<?>> containerCache) {
 		if (accessor.getTarget() instanceof AbstractHorseAccess) {
-			return new ItemCollector<>(new ItemIterator.ContainerItemIterator(o -> {
-				if (o instanceof AbstractHorseAccess horse) {
-					return horse.getInventory();
-				}
-				return null;
-			}, 2));
+			return new ItemCollector<>(new ItemIterator.ContainerItemIterator(
+					o -> {
+						if (o instanceof AbstractHorseAccess horse) {
+							return horse.getInventory();
+						}
+						return null;
+					}, 2));
 		}
 		try {
 			var storage = findItemHandler(accessor);
@@ -176,23 +184,24 @@ public final class CommonProxy {
 		final Container container = findContainer(accessor);
 		if (container != null) {
 			if (container instanceof ChestBlockEntity) {
-				return new ItemCollector<>(new ItemIterator.ContainerItemIterator(a -> {
-					if (a.getTarget() instanceof ChestBlockEntity be) {
-						if (be.getBlockState().getBlock() instanceof ChestBlock chestBlock) {
-							Container compound = ChestBlock.getContainer(
-									chestBlock,
-									be.getBlockState(),
-									Objects.requireNonNull(be.getLevel()),
-									be.getBlockPos(),
-									false);
-							if (compound != null) {
-								return compound;
+				return new ItemCollector<>(new ItemIterator.ContainerItemIterator(
+						a -> {
+							if (a.getTarget() instanceof ChestBlockEntity be) {
+								if (be.getBlockState().getBlock() instanceof ChestBlock chestBlock) {
+									Container compound = ChestBlock.getContainer(
+											chestBlock,
+											be.getBlockState(),
+											Objects.requireNonNull(be.getLevel()),
+											be.getBlockPos(),
+											false);
+									if (compound != null) {
+										return compound;
+									}
+								}
+								return be;
 							}
-						}
-						return be;
-					}
-					return null;
-				}, 0));
+							return null;
+						}, 0));
 			}
 			return new ItemCollector<>(new ItemIterator.ContainerItemIterator(0));
 		}
@@ -328,15 +337,22 @@ public final class CommonProxy {
 	}
 
 	public static ItemStack getBlockPickedResult(BlockState state, Player player, BlockHitResult hitResult) {
-		return state.getCloneItemStack(hitResult, player.level(), hitResult.getBlockPos(), player);
+		return state.getCloneItemStack(player.level(), hitResult.getBlockPos(), true);
 	}
 
 	public static ItemStack getEntityPickedResult(Entity entity, Player player, EntityHitResult hitResult) {
-		return MoreObjects.firstNonNull(entity.getPickedResult(hitResult), ItemStack.EMPTY);
+		return MoreObjects.firstNonNull(entity.getPickResult(), ItemStack.EMPTY);
 	}
 
-	private static void playerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-		ServerPlayer player = (ServerPlayer) event.getEntity();
+	public static void playerHandshake(String clientVersion, ServerPlayer player) {
+		if (!Jade.PROTOCOL_VERSION.equals(clientVersion)) {
+			String version = ModList.get().getModContainerById(Jade.ID)
+					.map($ -> MavenVersionTranslator.artifactVersionToString($.getModInfo().getVersion()))
+					.orElse("UNKNOWN");
+			player.displayClientMessage(Component.translatable("jade.protocolMismatch", version), false);
+			return;
+		}
+		((JadeServerPlayer) player).jade$setConnected(true);
 		Map<ResourceLocation, Object> configs = ServerPluginConfig.instance().values();
 		List<Block> shearableBlocks = HarvestToolProvider.INSTANCE.getShearableBlocks();
 		if (!configs.isEmpty()) {
@@ -344,7 +360,7 @@ public final class CommonProxy {
 		}
 		List<ResourceLocation> blockProviderIds = WailaCommonRegistration.instance().blockDataProviders.mappedIds();
 		List<ResourceLocation> entityProviderIds = WailaCommonRegistration.instance().entityDataProviders.mappedIds();
-		player.connection.send(new ServerPingPacket(configs, shearableBlocks, blockProviderIds, entityProviderIds));
+		player.connection.send(new ServerHandshakePacket(configs, shearableBlocks, blockProviderIds, entityProviderIds));
 	}
 
 	public static boolean isModLoaded(String modid) {
@@ -530,8 +546,8 @@ public final class CommonProxy {
 			return false;
 		}
 		LootItemCondition condition = conditions.getFirst();
-		if (condition instanceof MatchTool matchTool) {
-			ItemPredicate itemPredicate = matchTool.predicate().orElse(null);
+		if (condition instanceof MatchTool(Optional<ItemPredicate> predicate)) {
+			ItemPredicate itemPredicate = predicate.orElse(null);
 			return itemPredicate != null && itemPredicate.test(toolItem);
 		} else if (condition instanceof AnyOfCondition anyOfCondition) {
 			for (LootItemCondition child : anyOfCondition.terms) {
@@ -563,32 +579,36 @@ public final class CommonProxy {
 
 	public CommonProxy(IEventBus modBus) {
 		modBus.addListener(this::loadComplete);
-		modBus.addListener(RegisterPayloadHandlersEvent.class, event -> {
-			event.registrar(Jade.ID)
-					.versioned("6")
-					.optional()
-					.playToClient(
-							ReceiveDataPacket.TYPE,
-							ReceiveDataPacket.CODEC,
-							(payload, context) -> ReceiveDataPacket.handle(payload, context::enqueueWork))
-					.playToClient(
-							ServerPingPacket.TYPE,
-							ServerPingPacket.CODEC,
-							(payload, context) -> ServerPingPacket.handle(payload, context::enqueueWork))
-					.playToServer(
-							RequestEntityPacket.TYPE,
-							RequestEntityPacket.CODEC,
-							(payload, context) -> RequestEntityPacket.handle(payload, () -> (ServerPlayer) context.player()))
-					.playToServer(
-							RequestBlockPacket.TYPE,
-							RequestBlockPacket.CODEC,
-							(payload, context) -> RequestBlockPacket.handle(payload, () -> (ServerPlayer) context.player()))
-					.playToClient(
-							ShowOverlayPacket.TYPE,
-							ShowOverlayPacket.CODEC,
-							(payload, context) -> ShowOverlayPacket.handle(payload, context::enqueueWork));
-		});
-		NeoForge.EVENT_BUS.addListener(CommonProxy::playerJoin);
+		modBus.addListener(
+				RegisterPayloadHandlersEvent.class, event -> {
+					event.registrar(Jade.ID)
+							.versioned("6")
+							.optional()
+							.playToClient(
+									ReceiveDataPacket.TYPE,
+									ReceiveDataPacket.CODEC,
+									(payload, context) -> ReceiveDataPacket.handle(payload, context::enqueueWork))
+							.playToServer(
+									RequestEntityPacket.TYPE,
+									RequestEntityPacket.CODEC,
+									(payload, context) -> RequestEntityPacket.handle(payload, () -> (ServerPlayer) context.player()))
+							.playToServer(
+									RequestBlockPacket.TYPE,
+									RequestBlockPacket.CODEC,
+									(payload, context) -> RequestBlockPacket.handle(payload, () -> (ServerPlayer) context.player()))
+							.playToServer(
+									ClientHandshakePacket.TYPE,
+									ClientHandshakePacket.CODEC,
+									(payload, context) -> ClientHandshakePacket.handle(payload, () -> (ServerPlayer) context.player()))
+							.playToClient(
+									ServerHandshakePacket.TYPE,
+									ServerHandshakePacket.CODEC,
+									(payload, context) -> ServerHandshakePacket.handle(payload, context::enqueueWork))
+							.playToClient(
+									ShowOverlayPacket.TYPE,
+									ShowOverlayPacket.CODEC,
+									(payload, context) -> ShowOverlayPacket.handle(payload, context::enqueueWork));
+				});
 		NeoForge.EVENT_BUS.addListener(CommonProxy::registerServerCommand);
 		if (isPhysicallyClient()) {
 			ClientProxy.init(modBus);

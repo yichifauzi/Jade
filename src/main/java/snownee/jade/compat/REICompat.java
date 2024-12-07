@@ -1,4 +1,4 @@
-/*package snownee.jade.compat;
+package snownee.jade.compat;/*package snownee.jade.compat;
 
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.view.ViewSearchBuilder;

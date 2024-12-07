@@ -4,13 +4,14 @@
 	"compatibilityLevel": "JAVA_21",
 	"refmap": "jade.refmap.json",
 	"mixins": [
-		"AbstractFurnaceBlockEntityAccess",
 		"AbstractHorseAccess",
-		"EntityAccess"
+		"EntityAccess",
+		"ServerPlayerMixin"
 	],
 	"client": [
 		"BossHealthOverlayMixin",
 		"ClientLevelMixin",
+		"CreativeModeInventoryScreenMixin",
 		"KeyAccess",
 		"SessionSearchTreesMixin",
 		"StringRenderOutputMixin",

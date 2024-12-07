@@ -764,10 +764,10 @@ public class WailaConfig implements IWailaConfig {
 				Codec.BOOL.fieldOf("enableProfiles").orElse(false).forGetter($ -> $.enableProfiles),
 				Codec.intRange(0, 3).fieldOf("profileIndex").orElse(0).forGetter($ -> $.profileIndex),
 				WailaConfig.MAP_CODEC.forGetter($ -> $),
-				WailaConfig.History.CODEC.fieldOf("history")
-						.orElseGet(() -> JadeCodecs.createFromEmptyMap(WailaConfig.History.CODEC))
+				History.CODEC.fieldOf("history")
+						.orElseGet(() -> JadeCodecs.createFromEmptyMap(History.CODEC))
 						.forGetter($ -> $.history)
-		).apply(i, WailaConfig.Root::new));
+		).apply(i, Root::new));
 
 		private boolean enableProfiles;
 		public int profileIndex;

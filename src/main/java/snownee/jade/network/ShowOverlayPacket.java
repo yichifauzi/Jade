@@ -1,5 +1,7 @@
 package snownee.jade.network;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,7 +27,7 @@ public record ShowOverlayPacket(boolean show) implements CustomPacketPayload {
 	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public @NotNull Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 }

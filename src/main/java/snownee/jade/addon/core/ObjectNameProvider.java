@@ -6,6 +6,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.MenuProvider;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -122,10 +124,15 @@ public abstract class ObjectNameProvider implements IToggleableProvider {
 			if (!(accessor.getBlockEntity() instanceof Nameable nameable)) {
 				return null;
 			}
-			if (nameable instanceof ChestBlockEntity && accessor.getBlock() instanceof ChestBlock) {
+			if (nameable instanceof ChestBlockEntity && accessor.getBlock() instanceof ChestBlock && accessor.getBlockState().getValue(
+					ChestBlock.TYPE) != ChestType.SINGLE) {
 				MenuProvider menuProvider = accessor.getBlockState().getMenuProvider(accessor.getLevel(), accessor.getPosition());
 				if (menuProvider != null) {
-					return menuProvider.getDisplayName();
+					Component name = menuProvider.getDisplayName();
+					if (!(name.getContents() instanceof TranslatableContents contents) ||
+							!"container.chestDouble".equals(contents.getKey())) {
+						return name;
+					}
 				}
 			} else if (nameable.hasCustomName()) {
 				return nameable.getDisplayName();

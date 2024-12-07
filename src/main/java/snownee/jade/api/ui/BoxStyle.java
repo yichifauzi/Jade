@@ -10,12 +10,8 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.GuiSpriteManager;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import snownee.jade.api.config.IWailaConfig;
@@ -72,7 +68,7 @@ public abstract class BoxStyle implements Cloneable {
 	}
 
 	public static BoxStyle getSprite(ResourceLocation sprite, @Nullable int[] padding) {
-		return new BoxStyle.SpriteBase(Optional.empty(), ColorPalette.DEFAULT, Optional.ofNullable(padding), sprite, Optional.empty());
+		return new SpriteBase(Optional.empty(), ColorPalette.DEFAULT, Optional.ofNullable(padding), sprite, Optional.empty());
 	}
 
 	public abstract void render(GuiGraphics guiGraphics, StyledElement element, float x, float y, float w, float h, float alpha);
@@ -235,247 +231,20 @@ public abstract class BoxStyle implements Cloneable {
 			this.withIconSprite = withIconSprite.orElse(null);
 		}
 
-		public static void blitSprite(GuiGraphics guiGraphics, ResourceLocation resourceLocation, int i, int j, int k, int l, int m) {
-//			guiGraphics.blitSprite(RenderType::guiTextured, resourceLocation, i, j, k, l, m);
-			GuiSpriteManager sprites = Minecraft.getInstance().getGuiSprites();
-			TextureAtlasSprite textureAtlasSprite = sprites.getSprite(resourceLocation);
-			GuiSpriteScaling guiSpriteScaling = sprites.getSpriteScaling(textureAtlasSprite);
-			switch (guiSpriteScaling) {
-				case GuiSpriteScaling.Stretch ignored -> guiGraphics.blitSprite(
-						RenderType::guiTextured,
-						resourceLocation,
-						i,
-						j,
-						k,
-						l,
-						m);
-				case GuiSpriteScaling.Tile tile -> guiGraphics.blitTiledSprite(
-						RenderType::guiTextured,
-						textureAtlasSprite,
-						i,
-						j,
-						k,
-						l,
-						0,
-						0,
-						tile.width(),
-						tile.height(),
-						tile.width(),
-						tile.height(),
-						m);
-				case GuiSpriteScaling.NineSlice nineSlice -> blitNineSlicedSprite(
-						RenderType::guiTextured,
-						guiGraphics,
-						textureAtlasSprite,
-						nineSlice,
-						i,
-						j,
-						k,
-						l,
-						m);
-				default -> {
-				}
-			}
-		}
-
-		public static void blitNineSlicedSprite(
-				Function<ResourceLocation, RenderType> function,
-				GuiGraphics guiGraphics,
-				TextureAtlasSprite textureAtlasSprite,
-				GuiSpriteScaling.NineSlice nineSlice,
-				int i,
-				int j,
-				int k,
-				int l,
-				int m) {
-			GuiSpriteScaling.NineSlice.Border border = nineSlice.border();
-			int n = Math.min(border.left(), k / 2);
-			int o = Math.min(border.right(), k / 2);
-			int p = Math.min(border.top(), l / 2);
-			int q = Math.min(border.bottom(), l / 2);
-			if (k == nineSlice.width() && l == nineSlice.height()) {
-				guiGraphics.blitSprite(function, textureAtlasSprite, nineSlice.width(), nineSlice.height(), 0, 0, i, j, k, l, m);
-			} else if (l == nineSlice.height()) {
-				guiGraphics.blitSprite(function, textureAtlasSprite, nineSlice.width(), nineSlice.height(), 0, 0, i, j, n, l, m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i + n,
-						j,
-						k - o - n,
-						l,
-						n,
-						0,
-						nineSlice.width() - o - n,
-						nineSlice.height(),
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-				guiGraphics.blitSprite(
-						function,
-						textureAtlasSprite,
-						nineSlice.width(),
-						nineSlice.height(),
-						nineSlice.width() - o,
-						0,
-						i + k - o,
-						j,
-						o,
-						l,
-						m);
-			} else if (k == nineSlice.width()) {
-				guiGraphics.blitSprite(function, textureAtlasSprite, nineSlice.width(), nineSlice.height(), 0, 0, i, j, k, p, m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i,
-						j + p,
-						k,
-						l - q - p,
-						0,
-						p,
-						nineSlice.width(),
-						nineSlice.height() - q - p,
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-				guiGraphics.blitSprite(
-						function,
-						textureAtlasSprite,
-						nineSlice.width(),
-						nineSlice.height(),
-						0,
-						nineSlice.height() - q,
-						i,
-						j + l - q,
-						k,
-						q,
-						m);
-			} else {
-				guiGraphics.blitSprite(function, textureAtlasSprite, nineSlice.width(), nineSlice.height(), 0, 0, i, j, n, p, m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i + n,
-						j,
-						k - o - n,
-						p,
-						n,
-						0,
-						nineSlice.width() - o - n,
-						p,
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-				guiGraphics.blitSprite(
-						function,
-						textureAtlasSprite,
-						nineSlice.width(),
-						nineSlice.height(),
-						nineSlice.width() - o,
-						0,
-						i + k - o,
-						j,
-						o,
-						p,
-						m);
-				guiGraphics.blitSprite(
-						function,
-						textureAtlasSprite,
-						nineSlice.width(),
-						nineSlice.height(),
-						0,
-						nineSlice.height() - q,
-						i,
-						j + l - q,
-						n,
-						q,
-						m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i + n,
-						j + l - q,
-						k - o - n,
-						q,
-						n,
-						nineSlice.height() - q,
-						nineSlice.width() - o - n,
-						q,
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-				guiGraphics.blitSprite(
-						function,
-						textureAtlasSprite,
-						nineSlice.width(),
-						nineSlice.height(),
-						nineSlice.width() - o,
-						nineSlice.height() - q,
-						i + k - o,
-						j + l - q,
-						o,
-						q,
-						m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i,
-						j + p,
-						n,
-						l - q - p,
-						0,
-						p,
-						n,
-						nineSlice.height() - q - p,
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i + n,
-						j + p,
-						k - o - n,
-						l - q - p,
-						n,
-						p,
-						nineSlice.width() - o - n,
-						nineSlice.height() - q - p,
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-				guiGraphics.blitNineSliceInnerSegment(
-						function,
-						nineSlice,
-						textureAtlasSprite,
-						i + k - o,
-						j + p,
-						o,
-						l - q - p,
-						nineSlice.width() - o,
-						p,
-						o,
-						nineSlice.height() - q - p,
-						nineSlice.width(),
-						nineSlice.height(),
-						m);
-			}
-		}
-
 		@Override
 		public void render(GuiGraphics guiGraphics, StyledElement element, float x, float y, float w, float h, float alpha) {
 			ResourceLocation texture = sprite;
 			if (withIconSprite != null && element.getIcon() != null) {
 				texture = withIconSprite;
 			}
-			blitSprite(guiGraphics, texture, Math.round(x), Math.round(y), Math.round(w), Math.round(h), ARGB.white(alpha));
+			guiGraphics.blitSprite(
+					RenderType::guiTextured,
+					texture,
+					Math.round(x),
+					Math.round(y),
+					Math.round(w),
+					Math.round(h),
+					ARGB.white(alpha));
 		}
 
 		@Override

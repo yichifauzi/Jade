@@ -16,7 +16,6 @@ import snownee.jade.api.JadeIds;
 import snownee.jade.api.StreamServerDataProvider;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.ui.IElementHelper;
-import snownee.jade.mixin.AbstractFurnaceBlockEntityAccess;
 
 public enum FurnaceProvider implements IBlockComponentProvider, StreamServerDataProvider<BlockAccessor, FurnaceProvider.Data> {
 
@@ -38,11 +37,10 @@ public enum FurnaceProvider implements IBlockComponentProvider, StreamServerData
 
 	@Override
 	public Data streamData(BlockAccessor accessor) {
-		AbstractFurnaceBlockEntityAccess access = (AbstractFurnaceBlockEntityAccess) accessor.getBlockEntity();
 		AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity) accessor.getBlockEntity();
 		return new Data(
-				access.getCookingProgress(),
-				access.getCookingTotalTime(),
+				furnace.cookingTimer,
+				furnace.cookingTotalTime,
 				List.of(furnace.getItem(0), furnace.getItem(1), furnace.getItem(2)));
 	}
 

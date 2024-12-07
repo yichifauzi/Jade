@@ -90,7 +90,7 @@ public interface IWailaClientRegistration extends PlatformWailaClientRegistratio
 	void registerEntityIcon(IComponentProvider<EntityAccessor> provider, Class<? extends Entity> entityClass);
 
 	/**
-	 * Register an {@link IEntityComponentProvider} instance for appending {@link net.minecraft.network.chat.Component}
+	 * Register an {@link IEntityComponentProvider} instance for appending {@link Component}
 	 * to the tooltip.
 	 *
 	 * @param provider    The data provider instance

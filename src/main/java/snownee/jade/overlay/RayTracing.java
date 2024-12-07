@@ -45,7 +45,7 @@ public class RayTracing {
 	}
 
 	public static BlockState wrapBlock(BlockGetter level, BlockHitResult hit, CollisionContext context) {
-		if (hit.getType() != HitResult.Type.BLOCK) {
+		if (hit.getType() != Type.BLOCK) {
 			return Blocks.AIR.defaultBlockState();
 		}
 		BlockState blockState = level.getBlockState(hit.getBlockPos());

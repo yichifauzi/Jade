@@ -248,7 +248,6 @@
 	"config.jade.plugin_minecraft.fluid_storage.detailed": "Только детальная информация",
 	"config.jade.plugin_minecraft.fluid_storage.detailed_desc": "Показывать информацию о жидкости только при нажатии клавиши ${SHOW_DETAILS}.",
 	"jade.fluid": "%s %s",
-	"jade.fluid2": "%s %s / %s",
 	"jade.fluid.empty": "Пусто",
 	"config.jade.plugin_minecraft.lectern": "Кафедра",
 	"config.jade.plugin_minecraft.animal_owner": "Владелец животного",

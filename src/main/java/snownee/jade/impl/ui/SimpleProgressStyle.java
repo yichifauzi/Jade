@@ -4,7 +4,6 @@ import org.joml.Vector3f;
 
 import com.google.common.base.Preconditions;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -12,6 +11,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec2;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.config.IWailaConfig.Overlay;
+import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.api.ui.Color;
 import snownee.jade.api.ui.ProgressStyle;
 import snownee.jade.api.ui.ScreenDirection;
@@ -27,7 +27,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 	public boolean vertical;
 
 	public SimpleProgressStyle() {
-		color(0xFFFFFFFF);
+		color(-1);
 	}
 
 	private static Vector3f RGBtoHSV(int rgb) {
@@ -129,14 +129,16 @@ public class SimpleProgressStyle extends ProgressStyle {
 			}
 		}
 		if (text != null) {
-			Font font = Minecraft.getInstance().font;
+			Font font = DisplayHelper.font();
 			if (autoTextColor) {
 				autoTextColor = false;
 				if (overlay == null && RGBtoHSV(color2).z() > 0.75f) {
 					textColor = 0xFF000000;
 				} else {
-					textColor = 0xFFFFFFFF;
+					textColor = IThemeHelper.get().getNormalColor();
 				}
+			} else if (textColor == -1) {
+				textColor = IThemeHelper.get().getNormalColor();
 			}
 			y += height - font.lineHeight;
 			if (vertical && font.lineHeight < progress) {
@@ -144,8 +146,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 				y += font.lineHeight + 2;
 			}
 			int color = Overlay.applyAlpha(textColor, OverlayRenderer.alpha);
-			DisplayHelper.setBetterTextShadow(true);
-			Minecraft.getInstance().font.drawInBatch(
+			DisplayHelper.font().drawInBatch(
 					text,
 					(int) x + 1,
 					(int) y - 1,
@@ -156,7 +157,6 @@ public class SimpleProgressStyle extends ProgressStyle {
 					Font.DisplayMode.NORMAL,
 					ARGB.as8BitChannel(IWailaConfig.get().accessibility().getTextBackgroundOpacity()) << 24,
 					0xF000F0);
-			DisplayHelper.setBetterTextShadow(false);
 		}
 	}
 

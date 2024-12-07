@@ -22,6 +22,7 @@ import snownee.jade.util.JsonConfig;
 
 public class Jade {
 	public static final String ID = "jade";
+	public static final String PROTOCOL_VERSION = "7";
 	public static final Logger LOGGER = LogUtils.getLogger();
 	private static final JsonConfig<WailaConfig.Root> rootConfig = new JsonConfig<>(
 			Jade.ID + "/" + Jade.ID,
@@ -109,10 +110,10 @@ public class Jade {
 			configs = list.build();
 			rootConfig().history.checkNewUser(CommonProxy.getConfigDirectory().getAbsolutePath().hashCode());
 			rootConfig().fixData();
+			WailaConfig.init();
 			for (JsonConfig<? extends WailaConfig> config : configs) {
 				config.save();
 			}
-			WailaConfig.init();
 			JadeClient.refreshKeyState();
 		}
 	}

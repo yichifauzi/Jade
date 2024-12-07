@@ -174,7 +174,7 @@ public class WailaConfigScreen extends PreviewOptionsScreen {
 							}
 						}
 						minecraft.setScreen(this);
-						this.options.setScrollAmount(this.options.getMaxScroll());
+						this.options.setScrollAmount(this.options.maxScrollAmount());
 					},
 					title,
 					Component.translatable(OptionsList.Entry.makeKey("reset_settings.confirm")),

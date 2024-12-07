@@ -1,54 +1,39 @@
 package snownee.jade.mixin;
 
-import org.joml.Matrix4f;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.font.GlyphInfo;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.network.chat.Style;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.theme.IThemeHelper;
-import snownee.jade.overlay.DisplayHelper;
+import snownee.jade.util.JadeFont;
 
-@Mixin(Font.StringRenderOutput.class)
+@Mixin(value = Font.StringRenderOutput.class, priority = 500)
 public class StringRenderOutputMixin {
+	@Shadow(aliases = {"field_24240", "b"}, remap = false)
+	private Font this$0;
 
-	@Mutable
-	@Shadow
-	@Final
-	private float dimFactor;
-	@Mutable
-	@Shadow
-	@Final
-	private int color;
-	@Shadow
-	@Final
-	private boolean dropShadow;
+	@WrapOperation(method = "getShadowColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ARGB;scaleRGB(IF)I"))
+	private int jade$getShadowColor(int i, float f, Operation<Integer> original) {
+		if (this$0.getClass() == JadeFont.class && IThemeHelper.get().isLightColorScheme()) {
+			return IWailaConfig.Overlay.applyAlpha(i, 0.15F);
+		}
+		return original.call(i, f);
+	}
 
-	@Inject(
-			method = "<init>(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/renderer/MultiBufferSource;FFIIZLorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;IZ)V",
-			at = @At("RETURN"))
-	private void jade$init(
-			Font font,
-			MultiBufferSource multiBufferSource,
-			float f,
-			float g,
-			int i,
-			int j,
-			boolean bl,
-			Matrix4f matrix4f,
-			Font.DisplayMode displayMode,
-			int k,
-			boolean bl2,
-			CallbackInfo ci) {
-		if (dropShadow && DisplayHelper.enableBetterTextShadow() && IThemeHelper.get().isLightColorScheme()) {
-			dimFactor = 1;
-			color = IWailaConfig.Overlay.applyAlpha(i, 0.15F);
+	@Inject(method = "accept", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Style;isObfuscated()Z"), cancellable = true)
+	private void jade$accept(int i, Style style, int j, CallbackInfoReturnable<Boolean> cir, @Local GlyphInfo glyphInfo) {
+		if (this$0.getClass() == JadeFont.class && JadeFont.isTooLarge(glyphInfo, this$0.lineHeight)) {
+			cir.setReturnValue(false);
 		}
 	}
 

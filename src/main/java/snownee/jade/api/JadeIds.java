@@ -6,7 +6,8 @@ public interface JadeIds {
 
 	ResourceLocation ROOT = MC("root");
 	ResourceLocation PACKET_RECEIVE_DATA = JADE("receive_data");
-	ResourceLocation PACKET_SERVER_PING = JADE("server_ping_v1");
+	ResourceLocation PACKET_SERVER_HANDSHAKE = JADE("server_handshake");
+	ResourceLocation PACKET_CLIENT_HANDSHAKE = JADE("client_handshake");
 	ResourceLocation PACKET_REQUEST_ENTITY = JADE("request_entity");
 	ResourceLocation PACKET_REQUEST_BLOCK = JADE("request_block");
 	ResourceLocation PACKET_SHOW_OVERLAY = JADE("show_overlay");
@@ -21,6 +22,7 @@ public interface JadeIds {
 	ResourceLocation DEBUG_SPECIAL_REGISTRY_NAME = JADE("registry_name.special");
 	ResourceLocation DEBUG_BLOCK_PROPERTIES = JADE("block_properties");
 	ResourceLocation DEBUG_BLOCK_STATES = JADE("block_states");
+	ResourceLocation DEBUG_ENTITY_ATTRIBUTES = JADE("entity_attributes");
 	ResourceLocation UNIVERSAL_ITEM_STORAGE = MC("item_storage");
 	ResourceLocation UNIVERSAL_ITEM_STORAGE_DEFAULT = MC("item_storage.default");
 	ResourceLocation UNIVERSAL_ITEM_STORAGE_DETAILED_AMOUNT = MC("item_storage.detailed_amount");
@@ -30,9 +32,11 @@ public interface JadeIds {
 	ResourceLocation UNIVERSAL_FLUID_STORAGE = MC("fluid_storage");
 	ResourceLocation UNIVERSAL_FLUID_STORAGE_DEFAULT = MC("fluid_storage.default");
 	ResourceLocation UNIVERSAL_FLUID_STORAGE_DETAILED = MC("fluid_storage.detailed");
+	ResourceLocation UNIVERSAL_FLUID_STORAGE_STYLE = MC("fluid_storage.style");
 	ResourceLocation UNIVERSAL_ENERGY_STORAGE = MC("energy_storage");
 	ResourceLocation UNIVERSAL_ENERGY_STORAGE_DEFAULT = MC("energy_storage.default");
 	ResourceLocation UNIVERSAL_ENERGY_STORAGE_DETAILED = MC("energy_storage.detailed");
+	ResourceLocation UNIVERSAL_ENERGY_STORAGE_STYLE = MC("energy_storage.style");
 	ResourceLocation UNIVERSAL_PROGRESS = MC("progress");
 	ResourceLocation MC_ANIMAL_OWNER = MC("animal_owner");
 	ResourceLocation MC_ARMOR_STAND = MC("armor_stand");

@@ -1,4 +1,4 @@
-//package mcp.mobius.waila.impl.ui;
+package snownee.jade.impl.ui;//package mcp.mobius.waila.impl.ui;
 //
 //import java.util.List;
 //

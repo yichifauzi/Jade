@@ -36,7 +36,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.util.LazyLoadedValue;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -63,6 +62,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
+import net.neoforged.neoforge.client.textures.FluidSpriteCache;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -93,6 +93,7 @@ import snownee.jade.impl.WailaClientRegistration;
 import snownee.jade.impl.theme.ThemeHelper;
 import snownee.jade.impl.ui.FluidStackElement;
 import snownee.jade.mixin.KeyAccess;
+import snownee.jade.network.ClientHandshakePacket;
 import snownee.jade.network.RequestBlockPacket;
 import snownee.jade.network.RequestEntityPacket;
 import snownee.jade.overlay.DatapackBlockManager;
@@ -157,6 +158,10 @@ public final class ClientProxy {
 		} catch (Throwable e) {
 			WailaExceptionHandler.handleErr(e, null, null);
 		}
+	}
+
+	private static void onPlayerJoin(ClientPlayerNetworkEvent.LoggingIn event) {
+		event.getPlayer().connection.send(new ClientHandshakePacket(Jade.PROTOCOL_VERSION));
 	}
 
 	private static void onPlayerLeave(ClientPlayerNetworkEvent.LoggingOut event) {
@@ -263,10 +268,9 @@ public final class ClientProxy {
 	public static void getFluidSpriteAndColor(JadeFluidObject fluid, BiConsumer<@Nullable TextureAtlasSprite, Integer> consumer) {
 		Fluid type = fluid.getType();
 		FluidStack fluidStack = CommonProxy.toFluidStack(fluid);
-		Minecraft minecraft = Minecraft.getInstance();
 		IClientFluidTypeExtensions handler = IClientFluidTypeExtensions.of(type);
 		ResourceLocation fluidStill = handler.getStillTexture(fluidStack);
-		TextureAtlasSprite fluidStillSprite = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidStill);
+		TextureAtlasSprite fluidStillSprite = FluidSpriteCache.getSprite(fluidStill);
 		int fluidColor = handler.getTintColor(fluidStack);
 		if (OverlayRenderer.alpha != 1) {
 			fluidColor = IWailaConfig.Overlay.applyAlpha(fluidColor, OverlayRenderer.alpha);
@@ -334,37 +338,43 @@ public final class ClientProxy {
 		NeoForge.EVENT_BUS.addListener(ClientProxy::onEntityLeave);
 		NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, ClientProxy::onTooltip);
 		NeoForge.EVENT_BUS.addListener(ClientProxy::onClientTick);
+		NeoForge.EVENT_BUS.addListener(ClientProxy::onPlayerJoin);
 		NeoForge.EVENT_BUS.addListener(ClientProxy::onPlayerLeave);
 		NeoForge.EVENT_BUS.addListener(ClientProxy::registerCommands);
 		NeoForge.EVENT_BUS.addListener(ClientProxy::onKeyPressed);
 		NeoForge.EVENT_BUS.addListener(ClientProxy::onGui);
 		NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, ClientProxy::onDrawBossBar);
-		NeoForge.EVENT_BUS.addListener(RenderGuiEvent.Post.class, event -> {
-			if (Minecraft.getInstance().screen == null) {
-				onRenderTick(event.getGuiGraphics(), event.getPartialTick().getRealtimeDeltaTicks());
-			}
-		});
-		NeoForge.EVENT_BUS.addListener(ScreenEvent.Render.Pre.class, event -> {
-			Minecraft mc = Minecraft.getInstance();
-			Screen screen = event.getScreen();
-			if (shouldShowBeforeGui(mc, screen) && !shouldShowAfterGui(mc, screen)) {
-				onRenderTick(event.getGuiGraphics(), event.getPartialTick());
-			}
-		});
-		NeoForge.EVENT_BUS.addListener(ScreenEvent.Render.Post.class, event -> {
-			if (shouldShowAfterGui(Minecraft.getInstance(), event.getScreen())) {
-				onRenderTick(event.getGuiGraphics(), event.getPartialTick());
-			}
-		});
-		modBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
-			event.registerReloadListener(ThemeHelper.INSTANCE);
-			listeners.forEach(event::registerReloadListener);
-			listeners.clear();
-		});
-		modBus.addListener(RegisterKeyMappingsEvent.class, event -> {
-			keys.forEach(event::register);
-			keys.clear();
-		});
+		NeoForge.EVENT_BUS.addListener(
+				RenderGuiEvent.Post.class, event -> {
+					if (Minecraft.getInstance().screen == null) {
+						onRenderTick(event.getGuiGraphics(), event.getPartialTick().getRealtimeDeltaTicks());
+					}
+				});
+		NeoForge.EVENT_BUS.addListener(
+				ScreenEvent.Render.Pre.class, event -> {
+					Minecraft mc = Minecraft.getInstance();
+					Screen screen = event.getScreen();
+					if (shouldShowBeforeGui(mc, screen) && !shouldShowAfterGui(mc, screen)) {
+						onRenderTick(event.getGuiGraphics(), event.getPartialTick());
+					}
+				});
+		NeoForge.EVENT_BUS.addListener(
+				ScreenEvent.Render.Post.class, event -> {
+					if (shouldShowAfterGui(Minecraft.getInstance(), event.getScreen())) {
+						onRenderTick(event.getGuiGraphics(), event.getPartialTick());
+					}
+				});
+		modBus.addListener(
+				RegisterClientReloadListenersEvent.class, event -> {
+					event.registerReloadListener(ThemeHelper.INSTANCE);
+					listeners.forEach(event::registerReloadListener);
+					listeners.clear();
+				});
+		modBus.addListener(
+				RegisterKeyMappingsEvent.class, event -> {
+					keys.forEach(event::register);
+					keys.clear();
+				});
 		ModLoadingContext.get().registerExtensionPoint(
 				IConfigScreenFactory.class,
 				() -> (modContainer, screen) -> new HomeConfigScreen(screen));
