@@ -582,7 +582,7 @@ public final class CommonProxy {
 		modBus.addListener(
 				RegisterPayloadHandlersEvent.class, event -> {
 					event.registrar(Jade.ID)
-							.versioned("6")
+							.versioned(Jade.PROTOCOL_VERSION)
 							.optional()
 							.playToClient(
 									ReceiveDataPacket.TYPE,
