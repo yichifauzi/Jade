@@ -6,11 +6,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-import com.ibm.icu.text.DisplayContext;
-
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +22,6 @@ import snownee.jade.api.TooltipPosition;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.config.IWailaConfig;
 import snownee.jade.api.ui.BoxStyle;
-import snownee.jade.api.ui.DisplayStyle;
 import snownee.jade.api.ui.IElementHelper;
 import snownee.jade.api.ui.ProgressStyle;
 import snownee.jade.api.view.ClientViewGroup;
@@ -35,6 +31,7 @@ import snownee.jade.api.view.IServerExtensionProvider;
 import snownee.jade.api.view.ViewGroup;
 import snownee.jade.impl.WailaClientRegistration;
 import snownee.jade.impl.WailaCommonRegistration;
+import snownee.jade.impl.ui.ElementHelper;
 import snownee.jade.util.CommonProxy;
 import snownee.jade.util.WailaExceptionHandler;
 
@@ -87,34 +84,35 @@ public abstract class EnergyStorageProvider<T extends Accessor<?>> implements IC
 
 		IElementHelper helper = IElementHelper.get();
 		boolean renderGroup = groups.size() > 1 || groups.getFirst().shouldRenderGroup();
-		ClientViewGroup.tooltip(tooltip, groups, renderGroup, (theTooltip, group) -> {
-			if (renderGroup) {
-				group.renderHeader(theTooltip);
-			}
-			for (var view : group.views) {
-				Component text;
-				if (view.overrideText != null) {
-					text = view.overrideText;
-				} else {
-					text = Component.translatable("jade.fe", ChatFormatting.WHITE + view.current, view.max)
-							.withStyle(ChatFormatting.GRAY);
-				}
+		ClientViewGroup.tooltip(
+				tooltip, groups, renderGroup, (theTooltip, group) -> {
+					if (renderGroup) {
+						group.renderHeader(theTooltip);
+					}
+					for (var view : group.views) {
+						Component text;
+						if (view.overrideText != null) {
+							text = view.overrideText;
+						} else {
+							text = Component.translatable("jade.fe", view.current, view.max);
+						}
 
-				DisplayStyle style = config.getEnum(JadeIds.UNIVERSAL_ENERGY_STORAGE_STYLE);
-				switch(style) {
-					case TEXT -> theTooltip.add(Component.translatable("jade.energy.text").append(text));
-					case SYMBOL -> {
-						ResourceLocation location = JadeIds.JADE("energy");
-						theTooltip.add(helper.sprite(location, 7, 7));
-						theTooltip.append(text);
+						IWailaConfig.HandlerDisplayStyle style = config.getEnum(JadeIds.UNIVERSAL_ENERGY_STORAGE_STYLE);
+						switch (style) {
+							case PLAIN_TEXT -> theTooltip.add(Component.translatable("jade.energy.text", text));
+							case ICON -> {
+								theTooltip.add(helper.sprite(JadeIds.JADE("energy"), 10, 10)
+										.size(ElementHelper.SMALL_ITEM_SIZE)
+										.translate(ElementHelper.SMALL_ITEM_OFFSET));
+								theTooltip.append(text);
+							}
+							case PROGRESS_BAR -> {
+								ProgressStyle progressStyle = helper.progressStyle().color(0xFFAA0000, 0xFF660000);
+								theTooltip.add(helper.progress(view.ratio, text, progressStyle, BoxStyle.getNestedBox(), true));
+							}
+						}
 					}
-					default -> {
-						ProgressStyle progressStyle = helper.progressStyle().color(0xFFAA0000, 0xFF660000);
-						theTooltip.add(helper.progress(view.ratio, text, progressStyle, BoxStyle.getNestedBox(), true));
-					}
-				}
-			}
-		});
+				});
 	}
 
 	public static void putData(Accessor<?> accessor) {

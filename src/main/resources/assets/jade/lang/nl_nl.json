@@ -247,7 +247,6 @@
 	"config.jade.plugin_minecraft.fluid_storage.detailed": "Alleen gedetailleerd",
 	"config.jade.plugin_minecraft.fluid_storage.detailed_desc": "Toon alleen vloeistofinformatie wanneer ${SHOW_DETAILS} wordt ingedrukt.",
 	"jade.fluid": "%s %s",
-	"jade.fluid2": "%s %s / %s",
 	"jade.fluid.empty": "Leeg",
 	"config.jade.plugin_minecraft.lectern": "Lessenaar",
 	"config.jade.plugin_minecraft.animal_owner": "Diereneigenaar",

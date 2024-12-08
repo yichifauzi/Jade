@@ -10,9 +10,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec2;
 import snownee.jade.api.config.IWailaConfig.IConfigOverlay;
+import snownee.jade.api.theme.IThemeHelper;
 import snownee.jade.api.ui.Color;
-import snownee.jade.api.ui.ScreenDirection;
 import snownee.jade.api.ui.ProgressStyle;
+import snownee.jade.api.ui.ScreenDirection;
 import snownee.jade.overlay.DisplayHelper;
 import snownee.jade.overlay.OverlayRenderer;
 
@@ -25,7 +26,7 @@ public class SimpleProgressStyle extends ProgressStyle {
 	public boolean vertical;
 
 	public SimpleProgressStyle() {
-		color(0xFFFFFFFF);
+		color(-1);
 	}
 
 	private static Vector3f RGBtoHSV(int rgb) {
@@ -68,7 +69,9 @@ public class SimpleProgressStyle extends ProgressStyle {
 
 	@Override
 	public ProgressStyle direction(ScreenDirection direction) {
-		Preconditions.checkArgument(direction == ScreenDirection.UP || direction == ScreenDirection.RIGHT, "Only UP and RIGHT are supported");
+		Preconditions.checkArgument(
+				direction == ScreenDirection.UP || direction == ScreenDirection.RIGHT,
+				"Only UP and RIGHT are supported");
 		super.direction(direction);
 		vertical = direction.isVertical();
 		return this;
@@ -131,8 +134,10 @@ public class SimpleProgressStyle extends ProgressStyle {
 				if (overlay == null && RGBtoHSV(color2).z() > 0.75f) {
 					textColor = 0xFF000000;
 				} else {
-					textColor = 0xFFFFFFFF;
+					textColor = IThemeHelper.get().getNormalColor();
 				}
+			} else if (textColor == -1) {
+				textColor = IThemeHelper.get().getNormalColor();
 			}
 			y += height - font.lineHeight;
 			if (vertical && font.lineHeight < progress) {
