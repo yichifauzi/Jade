@@ -161,7 +161,10 @@ public final class ClientProxy {
 	}
 
 	private static void onPlayerJoin(ClientPlayerNetworkEvent.LoggingIn event) {
-		event.getPlayer().connection.send(new ClientHandshakePacket(Jade.PROTOCOL_VERSION));
+		try {
+			event.getPlayer().connection.send(new ClientHandshakePacket(Jade.PROTOCOL_VERSION));
+		} catch (Exception ignored) {
+		}
 	}
 
 	private static void onPlayerLeave(ClientPlayerNetworkEvent.LoggingOut event) {
