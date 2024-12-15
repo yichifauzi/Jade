@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -99,14 +100,18 @@ public abstract class EnergyStorageProvider<T extends Accessor<?>> implements IC
 						group.renderHeader(theTooltip);
 					}
 					for (var view : group.views) {
+						IWailaConfig.HandlerDisplayStyle style = config.getEnum(JadeIds.UNIVERSAL_ENERGY_STORAGE_STYLE);
 						Component text;
 						if (view.overrideText != null) {
 							text = view.overrideText;
 						} else {
-							text = Component.translatable("jade.fe", view.current, view.max);
+							String current = view.current;
+							if (style == IWailaConfig.HandlerDisplayStyle.PROGRESS_BAR) {
+								current = ChatFormatting.WHITE + current;
+							}
+							text = Component.translatable("jade.fe", current, view.max);
 						}
 
-						IWailaConfig.HandlerDisplayStyle style = config.getEnum(JadeIds.UNIVERSAL_ENERGY_STORAGE_STYLE);
 						switch (style) {
 							case PLAIN_TEXT -> theTooltip.add(Component.translatable("jade.energy.text", text));
 							case ICON -> {
