@@ -24,13 +24,19 @@ public class WrappedHierarchyLookup<T extends IJadeProvider> extends HierarchyLo
 	private boolean empty = true;
 
 	public WrappedHierarchyLookup() {
-		super(Object.class, true);
-		overrides.add(Pair.of(new HierarchyLookup<>(Block.class, true), accessor -> {
-			if (accessor instanceof BlockAccessor blockAccessor) {
-				return blockAccessor.getBlock();
-			}
-			return null;
-		}));
+		super(Object.class);
+	}
+
+	public static <T extends IJadeProvider> WrappedHierarchyLookup<T> forAccessor() {
+		WrappedHierarchyLookup<T> lookup = new WrappedHierarchyLookup<>();
+		lookup.overrides.add(Pair.of(
+				new HierarchyLookup<>(Block.class), accessor -> {
+					if (accessor instanceof BlockAccessor blockAccessor) {
+						return blockAccessor.getBlock();
+					}
+					return null;
+				}));
+		return lookup;
 	}
 
 	public List<T> wrappedGet(Accessor<?> accessor) {
