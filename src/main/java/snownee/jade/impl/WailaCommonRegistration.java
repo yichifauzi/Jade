@@ -61,10 +61,10 @@ public class WailaCommonRegistration implements IWailaCommonRegistration {
 		});
 		priorities.configurable(Jade.ID + "/sort-order", ResourceLocation.CODEC);
 
-		itemStorageProviders = new WrappedHierarchyLookup<>();
-		fluidStorageProviders = new WrappedHierarchyLookup<>();
-		energyStorageProviders = new WrappedHierarchyLookup<>();
-		progressProviders = new WrappedHierarchyLookup<>();
+		itemStorageProviders = WrappedHierarchyLookup.forAccessor();
+		fluidStorageProviders = WrappedHierarchyLookup.forAccessor();
+		energyStorageProviders = WrappedHierarchyLookup.forAccessor();
+		progressProviders = WrappedHierarchyLookup.forAccessor();
 	}
 
 	public static WailaCommonRegistration instance() {
