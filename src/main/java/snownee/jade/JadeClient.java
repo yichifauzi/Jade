@@ -220,7 +220,7 @@ public final class JadeClient {
 			if (player.isCreative() || player.isSpectator()) {
 				return accessor;
 			}
-			IWailaClientRegistration client = VanillaPlugin.CLIENT_REGISTRATION;
+			IWailaClientRegistration client = WailaClientRegistration.instance();
 			if (target.getBlock() instanceof ChestBlock) {
 				BlockState state = VanillaPlugin.getCorrespondingNormalChest(target.getBlockState());
 				if (state != target.getBlockState()) {

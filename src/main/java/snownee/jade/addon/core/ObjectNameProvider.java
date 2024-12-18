@@ -3,6 +3,7 @@ package snownee.jade.addon.core;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import snownee.jade.api.BlockAccessor;
@@ -137,7 +139,7 @@ public abstract class ObjectNameProvider implements IToggleableProvider {
 			} else if (nameable.hasCustomName()) {
 				return nameable.getDisplayName();
 			}
-			return null;
+			return accessor.getBlockEntity().components().get(DataComponents.ITEM_NAME);
 		}
 
 		@Override
@@ -147,7 +149,11 @@ public abstract class ObjectNameProvider implements IToggleableProvider {
 
 		@Override
 		public boolean shouldRequestData(BlockAccessor accessor) {
-			return accessor.getBlockEntity() instanceof Nameable;
+			BlockEntity blockEntity = accessor.getBlockEntity();
+			if (blockEntity == null) {
+				return false;
+			}
+			return blockEntity instanceof Nameable || blockEntity.components().has(DataComponents.ITEM_NAME);
 		}
 	}
 

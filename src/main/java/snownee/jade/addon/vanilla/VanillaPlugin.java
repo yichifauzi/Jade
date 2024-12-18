@@ -67,26 +67,26 @@ import snownee.jade.util.CommonProxy;
 public class VanillaPlugin implements IWailaPlugin {
 
 	private static final Cache<BlockState, BlockState> CHEST_CACHE = CacheBuilder.newBuilder().build();
-	public static IWailaClientRegistration CLIENT_REGISTRATION;
 
 	public static BlockState getCorrespondingNormalChest(BlockState state) {
 		try {
-			return CHEST_CACHE.get(state, () -> {
-				ResourceLocation trappedName = CommonProxy.getId(state.getBlock());
-				Block block = Blocks.AIR;
-				if (trappedName.getPath().startsWith("trapped_")) {
-					ResourceLocation chestName = trappedName.withPath(trappedName.getPath().substring(8));
-					block = BuiltInRegistries.BLOCK.getValue(chestName);
-				} else if (trappedName.getPath().endsWith("_trapped_chest")) {
-					ResourceLocation chestName = trappedName.withPath(
-							trappedName.getPath().substring(0, trappedName.getPath().length() - 14) + "_chest");
-					block = BuiltInRegistries.BLOCK.getValue(chestName);
-				}
-				if (block != Blocks.AIR) {
-					return copyProperties(state, block.defaultBlockState());
-				}
-				return state;
-			});
+			return CHEST_CACHE.get(
+					state, () -> {
+						ResourceLocation trappedName = CommonProxy.getId(state.getBlock());
+						Block block = Blocks.AIR;
+						if (trappedName.getPath().startsWith("trapped_")) {
+							ResourceLocation chestName = trappedName.withPath(trappedName.getPath().substring(8));
+							block = BuiltInRegistries.BLOCK.getValue(chestName);
+						} else if (trappedName.getPath().endsWith("_trapped_chest")) {
+							ResourceLocation chestName = trappedName.withPath(
+									trappedName.getPath().substring(0, trappedName.getPath().length() - 14) + "_chest");
+							block = BuiltInRegistries.BLOCK.getValue(chestName);
+						}
+						if (block != Blocks.AIR) {
+							return copyProperties(state, block.defaultBlockState());
+						}
+						return state;
+					});
 		} catch (Exception e) {
 			return state;
 		}
@@ -132,8 +132,6 @@ public class VanillaPlugin implements IWailaPlugin {
 
 	@Override
 	public void registerClient(IWailaClientRegistration registration) {
-		CLIENT_REGISTRATION = registration;
-
 		registration.addConfig(JadeIds.MC_EFFECTIVE_TOOL, true);
 		registration.addConfig(JadeIds.MC_HARVEST_TOOL_NEW_LINE, false);
 		registration.addConfig(JadeIds.MC_SHOW_UNBREAKABLE, false);
