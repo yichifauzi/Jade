@@ -67,7 +67,6 @@ import snownee.jade.overlay.DisplayHelper;
 import snownee.jade.overlay.WailaTickHandler;
 import snownee.jade.util.ClientProxy;
 import snownee.jade.util.CommonProxy;
-import snownee.jade.util.JadeLanguages;
 import snownee.jade.util.ModIdentification;
 import snownee.jade.util.WailaExceptionHandler;
 
@@ -105,7 +104,6 @@ public final class JadeClient {
 		}
 
 		ClientProxy.registerReloadListener(ModIdentification.INSTANCE);
-		ClientProxy.registerReloadListener(JadeLanguages.INSTANCE);
 	}
 
 	public static void onKeyPressed(int action) {
