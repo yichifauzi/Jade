@@ -4,6 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import snownee.jade.JadeClient;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -26,16 +27,16 @@ public class BlockAmountProvider implements IBlockComponentProvider {
 			amount = blockState.getValue(BlockStateProperties.EGGS);
 		}
 		if (amount >= 0) {
-			tooltip.add(Component.translatable("jade.access.block.amount", amount));
+			tooltip.add(JadeClient.format("jade.access.block.amount", amount));
 		}
 		if (blockState.hasProperty(BlockStateProperties.BITES)) {
-			tooltip.add(Component.translatable("jade.access.block.bites", blockState.getValue(BlockStateProperties.BITES)));
+			tooltip.add(JadeClient.format("jade.access.block.bites", blockState.getValue(BlockStateProperties.BITES)));
 		}
 		if (blockState.hasProperty(BlockStateProperties.LAYERS)) {
-			tooltip.add(Component.translatable("jade.access.block.layers", blockState.getValue(BlockStateProperties.LAYERS)));
+			tooltip.add(JadeClient.format("jade.access.block.layers", blockState.getValue(BlockStateProperties.LAYERS)));
 		}
 		if (blockState.hasProperty(BlockStateProperties.LEVEL_CAULDRON)) {
-			tooltip.add(Component.translatable("jade.access.block.level", blockState.getValue(BlockStateProperties.LEVEL_CAULDRON)));
+			tooltip.add(JadeClient.format("jade.access.block.level", blockState.getValue(BlockStateProperties.LEVEL_CAULDRON)));
 		}
 	}
 

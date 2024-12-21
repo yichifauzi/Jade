@@ -13,6 +13,7 @@
 		"ClientLevelMixin",
 		"CreativeModeInventoryScreenMixin",
 		"KeyAccess",
+		"LanguageManagerMixin",
 		"SessionSearchTreesMixin",
 		"StringRenderOutputMixin",
 		"conditional_key_mapping.KeyBindsListMixin",
