@@ -23,6 +23,7 @@
 	"gui.jade.configuration.desc2": "",
 	"gui.jade.jade_settings": "模組設定",
 	"gui.jade.plugin_settings": "插件設定",
+	"gui.jade.profile_settings": "設定檔設定",
 	"gui.jade.save_and_quit": "儲存並退出",
 	"gui.jade.invalid_value_cant_save": "發現無效的值。請在儲存前更正。",
 	"gui.jade.forced_plugin_config": "這個選項由伺服器控制",
