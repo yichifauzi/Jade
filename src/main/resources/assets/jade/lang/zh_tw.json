@@ -97,7 +97,7 @@
 	"config.jade.boss_bar_overlap": "Boss血量條重疊",
 	"config.jade.boss_bar_overlap_extra_msg": "bossbar,隱藏,推,下",
 	"config.jade.boss_bar_overlap_no_operation": "不進行操作",
-	"config.jade.boss_bar_overlap_hide_boss_bar": "隱藏 Boss 血量條",
+	"config.jade.boss_bar_overlap_hide_boss_bar": "隱藏Boss血量條",
 	"config.jade.boss_bar_overlap_hide_tooltip": "隱藏工具提示",
 	"config.jade.boss_bar_overlap_push_down": "下推工具提示",
 	"config.jade.display_item": "圖示位置",
